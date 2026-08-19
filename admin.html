@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ЖК 4U — кабінет ЖЕКу</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:var(--tg-theme-secondary-bg-color,#f0f1f5); --card:var(--tg-theme-bg-color,#ffffff);
+  --text:var(--tg-theme-text-color,#0d0d0f); --hint:var(--tg-theme-hint-color,#6e7278);
+  --accent:var(--tg-theme-button-color,#2481cc); --accent-fill:var(--tg-theme-button-color,#2481cc);
+  --accent-soft:rgba(36,129,204,.12); --sep:rgba(60,60,67,.13);
+  --danger:#e5484d; --danger-soft:rgba(229,72,77,.12);
+  --ok:#28a745; --ok-soft:rgba(40,167,69,.13);
+  --warn:#e8890c; --warn-soft:rgba(232,137,12,.14);
+  --r:16px; --shadow:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:var(--tg-theme-secondary-bg-color,#15202b); --card:var(--tg-theme-bg-color,#212d3b);
+    --text:var(--tg-theme-text-color,#f5f7fa); --hint:var(--tg-theme-hint-color,#93a1b0);
+    --accent:var(--tg-theme-button-color,#61a8e0); --accent-fill:var(--tg-theme-button-color,#2b6ca8);
+    --accent-soft:rgba(97,168,224,.16); --sep:rgba(255,255,255,.08);
+    --danger-soft:rgba(229,72,77,.18); --ok-soft:rgba(40,167,69,.18); --warn-soft:rgba(232,137,12,.2);
+    --shadow:none;
+  }
+}
+body{
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  background:var(--bg); color:var(--text);
+  display:flex; align-items:center; justify-content:center; min-height:100vh;
+}
+.phone{width:100%; max-width:412px; height:100vh; max-height:880px; background:var(--bg);
+  position:relative; overflow:hidden; display:flex; flex-direction:column}
+@media (min-width:640px){
+  body{background:#c9ccd3}
+  @media (prefers-color-scheme:dark){body{background:#0b1119}}
+  .phone{border-radius:30px; box-shadow:0 24px 60px rgba(0,0,0,.35); height:844px}
+}
+body.in-tg{background:var(--bg); display:block}
+body.in-tg .phone{max-width:none; width:100%; height:var(--tg-viewport-stable-height,100vh);
+  max-height:none; border-radius:0; box-shadow:none}
+body.in-tg .topbar .back{display:none !important}
+body.in-tg .protobar{display:none}
+body.in-tg .btn.main-act{display:none}
+
+.protobar{background:var(--warn-soft); color:var(--warn); text-align:center; font-size:11px; padding:4px; font-weight:600; letter-spacing:.4px}
+.topbar{flex:0 0 auto; display:flex; align-items:center; gap:10px; padding:14px 14px 10px;
+  background:var(--card); border-bottom:1px solid var(--sep); position:relative; z-index:5}
+.topbar .back{display:none; background:none; border:0; color:var(--accent); font-size:22px; cursor:pointer; padding:0 4px}
+.topbar.sub .back{display:block}
+.topbar .ttl{flex:1; min-width:0; font-size:17px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.topbar .sub-ttl{display:block; font-size:12px; font-weight:400; color:var(--hint)}
+.topbar .icobtn{background:none; border:0; cursor:pointer; color:var(--text); font-size:18px; padding:2px 4px}
+
+main{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-bottom:18px}
+.screen{display:none; padding:14px 14px 0; animation:in .16s ease}
+.screen.active{display:block}
+@keyframes in{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+
+.card{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden}
+.card + .card{margin-top:12px}
+.pad{padding:14px}
+.sec-ttl{font-size:12px; font-weight:600; letter-spacing:.6px; text-transform:uppercase; color:var(--hint); margin:20px 4px 8px}
+.sec-ttl:first-child{margin-top:4px}
+.muted{color:var(--hint)} .small{font-size:13px} .tiny{font-size:12px}
+.spread{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.row{display:flex; align-items:center; gap:12px; padding:13px 14px; border-bottom:1px solid var(--sep); cursor:pointer}
+.row:last-child{border-bottom:0}
+.row .ic{width:30px; height:30px; flex:0 0 30px; border-radius:9px; display:grid; place-items:center; font-size:15px; background:var(--accent-soft)}
+.row .body{flex:1; min-width:0}
+.row.top{align-items:flex-start}
+.row.top .ic{margin-top:1px}
+.row .nm{font-weight:500}
+.row .chev{color:var(--hint); font-size:17px}
+.row .rt{text-align:right; flex:0 0 auto}
+
+.btn{display:block; width:100%; padding:14px; border:0; border-radius:12px; cursor:pointer;
+  background:var(--accent-fill); color:#fff; font-size:16px; font-weight:600; font-family:inherit}
+.btn:active{opacity:.82}
+.btn.ghost{background:var(--accent-soft); color:var(--accent)}
+.btn.sm{padding:9px 14px; font-size:13px; border-radius:10px; width:auto; display:inline-block}
+.btn + .btn{margin-top:8px}
+
+.chip{display:inline-block; padding:3px 9px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap}
+.chip.b{background:var(--accent-soft); color:var(--accent)}
+.chip.g{background:var(--ok-soft); color:var(--ok)}
+.chip.r{background:var(--danger-soft); color:var(--danger)}
+.chip.y{background:var(--warn-soft); color:var(--warn)}
+.chip.n{background:var(--sep); color:var(--hint)}
+
+label.f{display:block; padding:12px 14px; border-bottom:1px solid var(--sep)}
+label.f:last-child{border-bottom:0}
+label.f .lb{display:block; font-size:12px; color:var(--hint); margin-bottom:3px}
+input,textarea,select{width:100%; border:0; background:none; color:var(--text); font:inherit; font-size:16px; outline:none; resize:none}
+input::placeholder,textarea::placeholder{color:var(--hint)}
+
+.stats{display:grid; grid-template-columns:repeat(2,1fr); gap:9px}
+.stat{background:var(--card); border-radius:14px; padding:13px; box-shadow:var(--shadow)}
+.stat .l{font-size:11px; color:var(--hint); line-height:1.3}
+.stat .v{font-size:24px; font-weight:700; margin-top:3px; letter-spacing:-.5px}
+.stat .d{font-size:11px; margin-top:2px}
+
+.filters{display:flex; gap:6px; overflow-x:auto; padding:2px 0 10px; margin:0 -14px; padding-left:14px; padding-right:14px}
+.filters::-webkit-scrollbar{display:none}
+.filters{-webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);mask-image:linear-gradient(90deg,#000 90%,transparent)}
+.filters button{white-space:nowrap; background:var(--card); color:var(--text); border:1px solid var(--sep);
+  border-radius:16px; padding:10px 14px; font:inherit; font-size:13px; cursor:pointer; min-height:40px}
+.filters button.on{background:var(--accent-fill); color:#fff; border-color:transparent; font-weight:600}
+.filters button .n{opacity:.65; margin-left:4px; font-size:11px}
+
+.bar{height:7px; border-radius:4px; background:var(--sep); overflow:hidden; margin-top:5px}
+.bar i{display:block; height:100%; background:var(--accent)}
+.ava{width:24px; height:24px; border-radius:50%; background:var(--accent-fill); color:#fff;
+  font-size:11px; display:grid; place-items:center; font-weight:600; flex:0 0 24px}
+.search{display:flex; align-items:center; gap:8px; background:var(--card); border-radius:12px; padding:10px 13px; margin-bottom:12px}
+.search input{font-size:15px}
+.tl{position:relative; padding-left:26px}
+.tl li{list-style:none; position:relative; padding-bottom:15px}
+.tl li:last-child{padding-bottom:0}
+.tl li::before{content:''; position:absolute; left:-19px; top:3px; width:11px; height:11px; border-radius:50%; background:var(--sep)}
+.tl li.done::before{background:var(--ok)}
+.tl li.now::before{background:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+.tl li::after{content:''; position:absolute; left:-14.5px; top:16px; bottom:0; width:2px; background:var(--sep)}
+.tl li:last-child::after{display:none}
+.msgs{display:flex; flex-direction:column; gap:8px; padding:2px}
+.msg{max-width:80%; padding:9px 12px; border-radius:15px; font-size:14px; line-height:1.35}
+.msg.them{background:var(--card); border-bottom-left-radius:5px; align-self:flex-start}
+.msg.me{background:var(--accent-fill); color:#fff; border-bottom-right-radius:5px; align-self:flex-end}
+.msg.bot{background:var(--card); border-bottom-left-radius:5px; align-self:flex-start; border-left:3px solid var(--accent)}
+.ai{display:flex; gap:10px; padding:13px 14px; border-radius:var(--r); background:linear-gradient(135deg,rgba(36,129,204,.15),rgba(150,82,204,.15))}
+.ai .e{font-size:18px; line-height:1.2}
+.grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+.qa{background:var(--card); border-radius:14px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:var(--shadow)}
+.qa .e{font-size:21px; display:block; margin-bottom:5px}
+.qa .t{font-size:11px; line-height:1.25; color:var(--hint)}
+.hide{display:none !important}
+
+.tabbar{flex:0 0 auto; display:grid; grid-template-columns:repeat(5,1fr);
+  background:var(--card); border-top:1px solid var(--sep); padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{background:none; border:0; padding:7px 0 9px; cursor:pointer; color:var(--hint); font-family:inherit; position:relative}
+.tabbar button .e{display:block; font-size:19px; margin-bottom:2px; filter:grayscale(1); opacity:.6}
+.tabbar button .t{font-size:10px}
+.tabbar button.on{color:var(--accent)}
+.tabbar button.on .e{filter:none; opacity:1}
+.tabbar .badge{position:absolute; top:4px; left:50%; margin-left:4px; min-width:16px; height:16px;
+  border-radius:8px; background:var(--danger); color:#fff; font-size:10px; line-height:16px; padding:0 4px}
+.tabbar.off{display:none}
+.toast{position:fixed; left:50%; bottom:92px; transform:translate(-50%,14px); z-index:99;
+  background:rgba(20,22,26,.94); color:#fff; padding:11px 18px; border-radius:22px; font-size:14px;
+  opacity:0; pointer-events:none; transition:.2s; max-width:88%; text-align:center}
+.toast.on{opacity:1; transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="protobar hide" id="devbar">ДЕМО-РЕЖИМ · підпис Telegram не перевіряється</div>
+
+  <div class="topbar" id="topbar">
+    <button class="back" onclick="back()">‹</button>
+    <div class="ttl" id="ttl">Кабінет ЖЕКу<span class="sub-ttl" id="subttl">ЖК 4U · секції 1–2 · 384 квартири</span></div>
+    <button class="icobtn" id="searchbtn" onclick="toast('Прототип: пошук у цьому розділі')">🔍</button>
+  </div>
+
+  <main id="main">
+
+    <!-- ═══ ОГЛЯД ═══ -->
+    <section class="screen active" id="s-dash">
+      <div class="stats">
+        <div class="stat" onclick="go('req')"><div class="l">Відкриті заявки</div><div class="v">7</div><div class="d" style="color:var(--danger)">2 прострочені за SLA</div></div>
+        <div class="stat" onclick="go('chat')"><div class="l">Нові звернення</div><div class="v">3</div><div class="d muted">найдовше 34 хв</div></div>
+        <div class="stat" onclick="go('meters')"><div class="l">Показники за серпень</div><div class="v">38%</div><div class="d" style="color:var(--warn)">146 з 384</div></div>
+        <div class="stat" onclick="go('debt')"><div class="l">Заборгованість</div><div class="v">382 400 ₴</div><div class="d" style="color:var(--danger)">54 квартири</div></div>
+      </div>
+
+      <div class="sec-ttl">Потребує уваги</div>
+      <div class="card" id="attention"></div>
+
+      <div class="sec-ttl">Заявки за 30 днів</div>
+      <div class="card pad" id="dash-cats"></div>
+
+      <div class="sec-ttl">Асистент і диспетчер</div>
+      <div class="card">
+        <div class="row" style="cursor:default"><span class="ic">🤖</span><div class="body"><div class="nm">Закрив асистент без людини</div><div class="tiny muted">147 з 216 діалогів за місяць</div></div><b>68%</b></div>
+        <div class="row" style="cursor:default"><span class="ic">⏱️</span><div class="body"><div class="nm">Середній час закриття заявки</div><div class="tiny muted">на 3 год швидше, ніж у липні</div></div><b>18 год</b></div>
+        <div class="row" style="cursor:default"><span class="ic">💧</span><div class="body"><div class="nm">Показники подано через фото</div><div class="tiny muted">розпізнавання замість ручного вводу</div></div><b>61%</b></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЗАЯВКИ ═══ -->
+    <section class="screen" id="s-req">
+      <div class="filters" id="req-filters"></div>
+      <div class="card" id="req-list"></div>
+      <div style="margin-top:14px"><button class="btn ghost" onclick="toast('Прототип: створити заявку від імені мешканця')">+ Заявка від імені мешканця</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЗАЯВКА ═══ -->
+    <section class="screen" id="s-req-one">
+      <div class="card pad">
+        <div class="spread"><div style="font-weight:600; font-size:17px" id="ro-ttl"></div><span id="ro-chip"></span></div>
+        <div class="small muted" style="margin-top:4px" id="ro-meta"></div>
+        <div style="margin-top:11px" id="ro-text"></div>
+      </div>
+      <div class="card" id="ro-sla"></div>
+      <div class="sec-ttl">Виконавець</div>
+      <div class="card" id="ro-master"></div>
+      <div class="sec-ttl">Хід виконання</div>
+      <div class="card pad"><ul class="tl" id="ro-tl"></ul></div>
+      <div style="margin-top:14px">
+        <button class="btn main-act" onclick="toast('Прототип: майстра призначено, йому надійшло сповіщення')">Призначити майстра</button>
+        <button class="btn ghost" onclick="go('chat-one')">Написати мешканцю</button>
+        <button class="btn ghost" onclick="toast('Прототип: заявку закрито')">Закрити заявку</button>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЗВЕРНЕННЯ ═══ -->
+    <section class="screen" id="s-chat">
+      <div class="filters" id="chat-filters"></div>
+      <div class="card" id="chat-list"></div>
+      <div class="sec-ttl">База знань асистента</div>
+      <div class="card">
+        <div class="row" style="cursor:default"><div class="body"><div class="tiny muted">Асистент відповідає цілодобово лише з цього переліку. Чого тут немає — ескалює диспетчеру, не вигадуючи.</div></div></div>
+        <div class="row" onclick="toast('Прототип: редактор шаблонів')"><span class="ic">📚</span><div class="body"><div class="nm">7 тем у базі</div><div class="tiny muted">Графік, реквізити, покази, аварійна лінія, заявки, перепустки, сміття</div></div><span class="chev">›</span></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ДІАЛОГ ═══ -->
+    <section class="screen" id="s-chat-one">
+      <div class="card pad">
+        <div class="spread"><div><div style="font-weight:600">Петренко Андрій</div><div class="tiny muted">кв. 284, с.2 · власник · +380 96 ***-14-08</div></div><span class="chip b">Ескалація 🤖</span></div>
+      </div>
+      <div class="msgs" style="margin-top:12px" id="dlg"></div>
+      <div class="card" style="margin-top:12px"><label class="f"><span class="lb">Відповідь від диспетчера</span><textarea rows="3" placeholder="Напишіть відповідь…"></textarea></label></div>
+      <div style="margin-top:12px">
+        <button class="btn main-act" onclick="toast('Прототип: відповідь надіслано мешканцю в Telegram')">Надіслати</button>
+        <button class="btn ghost" onclick="toast('Прототип: вставити шаблон із бази знань')">Шаблон із бази знань</button>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ГРОШІ ═══ -->
+    <section class="screen" id="s-money">
+      <div class="card pad">
+        <div class="tiny muted">Липень 2026</div>
+        <div class="spread" style="margin-top:6px">
+          <div><div class="tiny muted">Нараховано</div><div style="font-size:20px; font-weight:700">864 800 ₴</div></div>
+          <div style="text-align:right"><div class="tiny muted">Сплачено</div><div style="font-size:20px; font-weight:700">752 400 ₴</div></div>
+        </div>
+        <div class="bar" style="margin-top:10px"><i style="width:87%"></i></div>
+        <div class="tiny muted" style="margin-top:6px">Рівень оплати 87% · +4% до червня</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="row" onclick="go('debt')"><span class="ic">⚠️</span><div class="body"><div class="nm">Боржники</div><div class="tiny muted">54 квартири · 382 400 ₴</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('tariffs')"><span class="ic">📋</span><div class="body"><div class="nm">Тарифи</div><div class="tiny muted">Чинні з 1 серпня 2026</div></div><span class="chev">›</span></div>
+      </div>
+
+      <div class="sec-ttl">Дії за період</div>
+      <div class="card">
+        <div class="row" onclick="toast('Прототип: імпорт файлу нарахувань з бухгалтерії')"><span class="ic">⬆️</span><div class="body"><div class="nm">Імпорт нарахувань (XLSX)</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="toast('Прототип: імпорт виписки для звірки оплат')"><span class="ic">🏦</span><div class="body"><div class="nm">Імпорт виписки банку</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="toast('Прототип: квитанції надіслано 384 мешканцям')"><span class="ic">📤</span><div class="body"><div class="nm">Розіслати квитанції</div><div class="tiny muted">У Telegram, одним натиском</div></div><span class="chev">›</span></div>
+      </div>
+
+      <div class="sec-ttl">Нарахування по квартирах</div>
+      <div class="card" id="bill-list"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ БОРЖНИКИ ═══ -->
+    <section class="screen" id="s-debt">
+      <div class="filters" id="debt-filters"></div>
+      <div class="card" id="debt-list"></div>
+      <div style="margin-top:14px">
+        <button class="btn main-act" onclick="toast('Прототип: нагадування надіслано в Telegram')">Надіслати нагадування</button>
+        <button class="btn ghost" onclick="toast('Прототип: сформувати претензії')">Сформувати претензії</button>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ТАРИФИ ═══ -->
+    <section class="screen" id="s-tariffs">
+      <div class="card" id="tariff-list"></div>
+      <div style="margin-top:14px"><button class="btn ghost" onclick="toast('Прототип: редагування тарифів')">Змінити тарифи</button></div>
+      <div class="ai" style="margin-top:14px"><span class="e">ℹ️</span><div class="small">Зміна тарифу застосується з наступного розрахункового періоду і потрапить у стрічку новин автоматично.</div></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ПОКАЗНИКИ ═══ -->
+    <section class="screen" id="s-meters">
+      <div class="card pad">
+        <div class="spread"><div><div class="tiny muted">Серпень 2026 · подано</div><div style="font-size:20px; font-weight:700">146 з 384</div></div><span class="chip y">38%</span></div>
+        <div class="bar" style="margin-top:10px"><i style="width:38%"></i></div>
+        <div class="tiny muted" style="margin-top:6px">61% подано фото з розпізнаванням · 238 квартир ще не подали</div>
+      </div>
+      <div class="filters" id="meter-filters" style="margin-top:12px"></div>
+      <div class="card" id="meter-list"></div>
+      <div style="margin-top:14px">
+        <button class="btn main-act" onclick="toast('Прототип: вивантаження XLSX для бухгалтерії')">Вивантажити XLSX</button>
+        <button class="btn ghost" onclick="toast('Прототип: нагадування 238 квартирам')">Нагадати тим, хто не подав</button>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ПЕРЕПУСТКИ ═══ -->
+    <section class="screen" id="s-pass">
+      <div class="card" id="pass-list"></div>
+      <div class="ai" style="margin-top:14px"><span class="e">👮</span><div class="small">Охорона на КПП бачить цей самий список і перевіряє гостя за кодом або QR. Двір без авто — гостьові місця вздовж вул. Булаховського.</div></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ НОВИНИ ═══ -->
+    <section class="screen" id="s-news">
+      <div class="sec-ttl">Нове оголошення</div>
+      <div class="card">
+        <label class="f"><span class="lb">Заголовок</span><input placeholder="Планове відключення води"></label>
+        <label class="f"><span class="lb">Текст</span><textarea rows="4" placeholder="Що, коли, кого стосується…"></textarea></label>
+        <label class="f"><span class="lb">Тип</span><select><option>Звичайне оголошення</option><option>Аварійне — червоне, push усім</option><option>Планові роботи</option></select></label>
+        <label class="f"><span class="lb">Кому</span><select><option>Усі секції — 384 квартири</option><option>Секція 1 — 192</option><option>Секція 2 — 192</option><option>Тільки боржникам — 54</option><option>Тільки власникам авто — 118</option></select></label>
+        <div class="row" onclick="toast('Прототип: додати фото')"><span class="ic">📎</span><div class="body"><div class="nm">Додати фото</div></div><span class="chev">›</span></div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn main-act" onclick="toast('Прототип: опубліковано, push надіслано 384 мешканцям')">Опублікувати і надіслати push</button>
+        <button class="btn ghost" onclick="toast('Прототип: збережено як чернетку')">Зберегти чернетку</button>
+      </div>
+      <div class="sec-ttl">Опубліковані</div>
+      <div class="card" id="news-list"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ГОЛОСУВАННЯ ═══ -->
+    <section class="screen" id="s-vote">
+      <div class="card">
+        <div class="pad" style="border-bottom:1px solid var(--sep)">
+          <div class="spread"><div style="font-weight:600">Встановити шлагбаум на в'їзді?</div><span class="chip b">Активне</span></div>
+          <div class="tiny muted" style="margin-top:4px">До 25 серпня · проголосувало 149 з 384 квартир (39%)</div>
+        </div>
+        <div class="pad" id="vote-live"></div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn ghost" onclick="toast('Прототип: нагадати 235 квартирам, що не голосували')">Нагадати тим, хто не голосував</button>
+        <button class="btn ghost" onclick="toast('Прототип: вивантаження протоколу з переліком квартир')">Вивантажити протокол</button>
+        <button class="btn ghost" onclick="toast('Прототип: завершити достроково')">Завершити достроково</button>
+      </div>
+      <div class="sec-ttl">Завершені</div>
+      <div class="card" id="vote-done"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ КВАРТИРИ ═══ -->
+    <section class="screen" id="s-flats">
+      <div class="search"><span>🔍</span><input placeholder="Квартира, ПІБ або телефон"></div>
+      <div class="filters" id="flat-filters"></div>
+      <div class="card" id="flat-list"></div>
+      <div style="margin-top:14px"><button class="btn ghost" onclick="toast('Прототип: друк кодів прив\'язки для вкладення у квитанції')">Коди прив'язки для квитанцій</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ КВАРТИРА ═══ -->
+    <section class="screen" id="s-flat-one">
+      <div class="card">
+        <div class="row" style="cursor:default"><div class="body"><div class="tiny muted">Адреса</div><div class="nm">Булаховського 2, секція 2, кв. 284</div></div></div>
+        <div class="row" style="cursor:default"><div class="body"><div class="tiny muted">Власник</div><div class="nm">Петренко Андрій Сергійович</div></div></div>
+        <div class="row" style="cursor:default"><div class="body"><div class="tiny muted">Площа · особовий рахунок</div><div class="nm">68,4 м² · 4U-0284</div></div></div>
+        <div class="row" style="cursor:default"><div class="body"><div class="tiny muted">Борг</div><div class="nm" style="color:var(--danger)">799,00 ₴ · 1 місяць</div></div></div>
+      </div>
+      <div class="sec-ttl">Хто має доступ</div>
+      <div class="card">
+        <div class="row" style="cursor:default"><span class="ic">👑</span><div class="body"><div class="nm">Петренко Андрій</div><div class="tiny muted">Власник · повний доступ</div></div><span class="chip g">Активний</span></div>
+        <div class="row" style="cursor:default"><span class="ic">🔑</span><div class="body"><div class="nm">Коваленко Дмитро</div><div class="tiny muted">Орендар · до 31.12.2026 · без рахунків</div></div><span class="chip b">Орендар</span></div>
+      </div>
+      <div class="sec-ttl">Історія</div>
+      <div class="card">
+        <div class="row" onclick="go('req-one')"><span class="ic">🔧</span><div class="body"><div class="nm">3 заявки за рік</div><div class="tiny muted">Остання — №482, в роботі</div></div><span class="chev">›</span></div>
+        <div class="row" style="cursor:default"><span class="ic">💧</span><div class="body"><div class="nm">Покази подано вчасно 11 з 12 разів</div></div></div>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn ghost" onclick="go('chat-one')">Написати мешканцю</button>
+        <button class="btn ghost" onclick="toast('Прототип: надіслати квитанцію')">Надіслати квитанцію</button>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ПЕРСОНАЛ ═══ -->
+    <section class="screen" id="s-staff">
+      <div class="card" id="staff-list"></div>
+      <div style="margin-top:14px"><button class="btn ghost" onclick="toast('Прототип: додати співробітника і призначити роль')">+ Співробітник</button></div>
+      <div class="ai" style="margin-top:14px"><span class="e">🔐</span><div class="small">Роль визначає, що людина бачить у застосунку: майстер — лише свої заявки, бухгалтер — лише гроші, забудовник — лише гарантійні звернення.</div></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЩЕ ═══ -->
+    <section class="screen" id="s-more">
+      <div class="card">
+        <div class="row" onclick="go('meters')"><span class="ic">💧</span><div class="body"><div class="nm">Показники</div><div class="tiny muted">146 з 384 подано</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('pass')"><span class="ic">🎫</span><div class="body"><div class="nm">Перепустки</div><div class="tiny muted">3 діючі</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('news')"><span class="ic">📰</span><div class="body"><div class="nm">Новини та розсилка</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('vote')"><span class="ic">🗳️</span><div class="body"><div class="nm">Голосування</div><div class="tiny muted">1 активне</div></div><span class="chev">›</span></div>
+      </div>
+      <div class="sec-ttl">Довідники</div>
+      <div class="card">
+        <div class="row" onclick="go('flats')"><span class="ic">🏠</span><div class="body"><div class="nm">Квартири й мешканці</div><div class="tiny muted">384 · 334 підключено</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('staff')"><span class="ic">👷</span><div class="body"><div class="nm">Персонал і ролі</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('tariffs')"><span class="ic">📋</span><div class="body"><div class="nm">Тарифи</div></div><span class="chev">›</span></div>
+      </div>
+      <div class="sec-ttl">Звіти</div>
+      <div class="card">
+        <div class="row" onclick="toast('Прототип: звіт по заявках за період')"><span class="ic">📊</span><div class="body"><div class="nm">Заявки за період</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="toast('Прототип: звіт по збору коштів')"><span class="ic">💰</span><div class="body"><div class="nm">Збір коштів помісячно</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="toast('Прототип: оцінки майстрів')"><span class="ic">⭐</span><div class="body"><div class="nm">Оцінки мешканців</div></div><span class="chev">›</span></div>
+      </div>
+      <div class="tiny muted" style="text-align:center; margin:18px 0 8px">Петренко І.М. · керуючий · усі права<br>ЖК 4U · прототип кабінету ЖЕКу v0.2</div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="dash" class="on" onclick="go('dash')"><span class="e">📊</span><span class="t">Огляд</span></button>
+    <button data-tab="req" onclick="go('req')"><span class="e">🔧</span><span class="t">Заявки</span><span class="badge">7</span></button>
+    <button data-tab="chat" onclick="go('chat')"><span class="e">💬</span><span class="t">Чат</span><span class="badge">3</span></button>
+    <button data-tab="money" onclick="go('money')"><span class="e">💳</span><span class="t">Гроші</span></button>
+    <button data-tab="more" onclick="go('more')"><span class="e">☰</span><span class="t">Ще</span></button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ Telegram WebApp ═══════════ */
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const inTG = !!(tg && tg.initData && tg.initData.length);
+if(tg){ try{ tg.ready(); tg.expand(); }catch(e){}
+        try{ tg.setHeaderColor('secondary_bg_color'); }catch(e){} }
+if(inTG) document.body.classList.add('in-tg');
+function haptic(k){ if(!tg||!tg.HapticFeedback) return;
+  try{ k==='ok'?tg.HapticFeedback.notificationOccurred('success')
+      :k==='err'?tg.HapticFeedback.notificationOccurred('error')
+      :tg.HapticFeedback.impactOccurred(k||'light'); }catch(e){} }
+
+let DEMO = false, DEMO_DATA = null, demoSeq = 900;
+async function demoApi(path, body){
+  await new Promise(r=>setTimeout(r,180));
+  if(path === '/bootstrap') return DEMO_DATA;
+  if(/^\/requests\/\d+\/assign$/.test(path)){
+    const r = DEMO_DATA.requests.find(x=>x.id===+path.split('/')[2]);
+    const m = DEMO_DATA.staff.find(s=>s.id===body.master_id);
+    if(r && m){ r.master_name = m.name; r.status='assigned'; r.assigned_at = new Date().toISOString(); }
+    return { ok:true };
+  }
+  if(/^\/requests\/\d+\/status$/.test(path)){
+    const r = DEMO_DATA.requests.find(x=>x.id===+path.split('/')[2]);
+    if(r){ r.status = body.status; if(body.status==='done') r.done_at = new Date().toISOString(); }
+    return { ok:true };
+  }
+  if(/^\/chats\/\d+\/messages$/.test(path)) return DEMO_MSGS;
+  if(/^\/chats\/\d+\/reply$/.test(path)){
+    DEMO_MSGS.push({ author:'staff', staff_name:'Ви', text: body.text, created_at:new Date().toISOString() });
+    const c = DEMO_DATA.chats.find(x=>x.id===+path.split('/')[2]);
+    if(c){ c.status='staff'; c.last_text = body.text; }
+    return { ok:true };
+  }
+  if(/^\/meters\/\d+\/status$/.test(path)){
+    const m = DEMO_DATA.meters.find(x=>x.id===+path.split('/')[2]);
+    if(m) m.status = body.status;
+    return { ok:true };
+  }
+  if(path === '/news'){
+    DEMO_DATA.news.unshift({ id:++demoSeq, title: body.title, body: body.body, kind: body.kind,
+      emoji: body.kind==='emergency'?'⚠️':'📰', audience: body.audience,
+      delivered: DEMO_DATA.stats.connected, created_at:new Date().toISOString() });
+    return { ok:true, delivered: DEMO_DATA.stats.connected, pushed: 0 };
+  }
+  if(path === '/debtors/remind') return { ok:true, matched: (body.flat_ids||[]).length, sent: 0 };
+  return { ok:true };
+}
+const DEMO_MSGS = [
+  { author:'bot', text:'Вітаю! Я асистент ЖК 4U. Чим допомогти?', created_at:new Date().toISOString() },
+  { author:'user', text:'Гарячої води немає третю добу!', created_at:new Date().toISOString() },
+  { author:'bot', text:'Тут я не впевнений — передаю диспетчеру.', created_at:new Date().toISOString() },
+];
+
+async function api(path, body){
+  if(DEMO) return demoApi(path, body);
+  const headers = { 'Content-Type':'application/json' };
+  if(inTG) headers['X-Telegram-InitData'] = tg.initData;
+  const res = await fetch('/api/admin' + path, {
+    method: body ? 'POST' : 'GET', headers, body: body ? JSON.stringify(body) : undefined });
+  const d = await res.json().catch(()=>({error:'Сервер повернув не JSON'}));
+  if(!res.ok) throw new Error(d.error || ('Помилка '+res.status));
+  return d;
+}
+
+let D = {};
+const money = n => (+n||0).toLocaleString('uk-UA',{maximumFractionDigits:0})+' ₴';
+const money2 = n => (+n||0).toLocaleString('uk-UA',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₴';
+const esc = s => String(s==null?'':s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const dt = s => s ? new Date(s).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+const dOnly = s => s ? new Date(s).toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit'}) : '';
+const CAT_EMOJI = { 'Сантехніка':'🚿','Електрика':'💡','Ліфт':'🛗','Домофон':'🚪',
+  'Прибирання':'🧹','Опалення':'🔥','Двір':'🌳','Інше':'❓' };
+const ST = { new:['Нова','n'], assigned:['Призначена','b'], in_progress:['В роботі','y'],
+  done:['Виконана','g'], cancelled:['Скасована','n'] };
+const ST_ORDER = ['new','assigned','in_progress','done'];
+
+const TITLES = {
+  dash:['Кабінет ЖЕКу',''], req:['Заявки',''], 'req-one':['Заявка',''],
+  chat:['Звернення','асистент 24/7 · ескалація диспетчеру'], 'chat-one':['Діалог',''],
+  money:['Гроші',''], debt:['Боржники',''], tariffs:['Тарифи',''],
+  meters:['Показники',''], pass:['Перепустки','КПП'], news:['Новини та розсилка',''],
+  vote:['Голосування',''], flats:['Квартири й мешканці',''], 'flat-one':['Квартира',''],
+  staff:['Персонал і ролі',''], more:['Ще','']
+};
+const ROOTS = ['dash','req','chat','money','more'];
+const TABS = { dash:'dash', req:'req', 'req-one':'req', chat:'chat', 'chat-one':'chat',
+  money:'money', debt:'money', tariffs:'money', meters:'more', pass:'more', news:'more',
+  vote:'more', flats:'more', 'flat-one':'more', staff:'more', more:'more' };
+
+const MAIN_ACTION = {
+  'req-one':['Призначити майстра', ()=>assignPrompt()],
+  'chat-one':['Надіслати відповідь', ()=>sendReply()],
+  meters:['Вивантажити CSV', ()=>exportMeters()],
+  debt:['Надіслати нагадування', ()=>remindDebtors()],
+  news:['Опублікувати і надіслати push', ()=>publishNews()],
+};
+let mainHandler=null;
+function syncMainButton(id){
+  if(!tg||!tg.MainButton) return;
+  const a = MAIN_ACTION[id];
+  if(mainHandler){ try{ tg.MainButton.offClick(mainHandler); }catch(e){} mainHandler=null; }
+  if(!a){ try{ tg.MainButton.hide(); }catch(e){} return; }
+  mainHandler = ()=>{ haptic('ok'); a[1](); };
+  try{ tg.MainButton.setText(a[0]); tg.MainButton.onClick(mainHandler); tg.MainButton.show(); }catch(e){}
+}
+if(tg&&tg.BackButton){ try{ tg.BackButton.onClick(()=>back()); }catch(e){} }
+
+let stack = ['dash'];
+function go(id, push=true){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('s-'+id); if(!el) return;
+  el.classList.add('active');
+  if(push){ if(ROOTS.indexOf(id)>=0) stack=[id]; else if(stack[stack.length-1]!==id) stack.push(id); }
+  const t = TITLES[id]||['',''];
+  document.getElementById('ttl').firstChild.nodeValue = t[0];
+  document.getElementById('subttl').textContent = t[1] || subtitleFor(id);
+  document.getElementById('topbar').classList.toggle('sub', ROOTS.indexOf(id)<0);
+  document.getElementById('searchbtn').classList.toggle('hide',
+    ['req','chat','money','debt','meters','pass','flats','staff'].indexOf(id)<0);
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===TABS[id]));
+  syncMainButton(id);
+  if(tg&&tg.BackButton){ try{ ROOTS.indexOf(id)<0?tg.BackButton.show():tg.BackButton.hide(); }catch(e){} }
+  document.getElementById('main').scrollTop = 0;
+}
+function subtitleFor(id){
+  const s = D.stats||{};
+  if(id==='dash') return `ЖК 4U · ${s.flats||0} квартир · ${s.connected||0} підключено`;
+  if(id==='req') return `${s.openRequests||0} відкритих · ${s.overdue||0} прострочені`;
+  if(id==='money') return periodTitle();
+  if(id==='debt') return `${s.debtFlats||0} квартир · ${money(s.debtTotal)}`;
+  if(id==='meters') return `${s.metersPeriod||''} · ${s.metersDone||0} з ${s.flats||0}`;
+  if(id==='flats') return `${s.flats||0} · ${s.connected||0} підключено`;
+  return '';
+}
+function back(){ haptic('light'); stack.pop(); go(stack[stack.length-1]||'dash', false); }
+document.addEventListener('click', e=>{
+  if(e.target.closest('.row,.btn,.stat,.filters button,.tabbar button,.qa')) haptic('light'); }, true);
+let tt; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),2600); }
+const bar = p => `<div class="bar"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></div>`;
+const MONTHS=['січень','лютий','березень','квітень','травень','червень','липень','серпень','вересень','жовтень','листопад','грудень'];
+function periodTitle(){ const p=(D.stats&&D.stats.metersPeriod)||''; const [y,m]=p.split('-');
+  return m ? `${MONTHS[+m-1]} ${y}` : ''; }
+
+/* ═══════════ Завантаження ═══════════ */
+async function boot(){
+  try{ D = await api('/bootstrap'); }
+  catch(e0){
+  try{
+    const r = await fetch('demo/admin.json');
+    if(!r.ok) throw e0;
+    DEMO_DATA = await r.json(); DEMO = true; D = DEMO_DATA;
+    const bar = document.getElementById('devbar');
+    bar.textContent = 'ДЕМО · вигадані дані, дії працюють лише у вашому браузері';
+    bar.classList.remove('hide');
+  }catch(e){
+    document.getElementById('main').innerHTML =
+      `<div class="pad" style="text-align:center;padding:40px 20px">
+        <div style="font-size:34px">🔒</div>
+        <div style="font-weight:600;margin-top:10px">${esc(e.message)}</div>
+        <div class="small muted" style="margin-top:6px">Кабінет ЖЕКу відкривається лише персоналу з таблиці staff.</div>
+        <div class="small muted" style="margin-top:14px;text-align:left;font-family:ui-monospace,monospace;font-size:11px;
+             background:var(--card);padding:12px;border-radius:10px">
+          Telegram SDK: ${window.Telegram?'є':'НЕ ЗАВАНТАЖИВСЯ'}<br>
+          initData: ${tg&&tg.initData?tg.initData.length+' символів':'порожній'}<br>
+          platform: ${tg?tg.platform:'—'} · версія: ${tg?tg.version:'—'}</div></div>`;
+    return;
+  }
+  }
+  if(!inTG) document.getElementById('devbar').classList.remove('hide');
+  renderAll(); go('dash', false);
+}
+function badges(){
+  const s = D.stats||{};
+  const b = document.querySelectorAll('.tabbar .badge');
+  if(b[0]){ b[0].textContent = s.openRequests||0; b[0].classList.toggle('hide', !s.openRequests); }
+  if(b[1]){ b[1].textContent = s.chatsWaiting||0; b[1].classList.toggle('hide', !s.chatsWaiting); }
+}
+function renderAll(){
+  badges();
+  renderDash(); renderReq(); renderChats(); renderMoney(); renderDebt(); renderTariffs();
+  renderMeters(); renderPasses(); renderNews(); renderVote(); renderFlats(); renderStaff();
+  document.getElementById('subttl').textContent = subtitleFor('dash');
+}
+
+/* ═══════════ Огляд ═══════════ */
+function renderDash(){
+  const s = D.stats;
+  const st = document.querySelectorAll('#s-dash .stat');
+  const set = (i, v, d, color) => { if(!st[i]) return;
+    st[i].querySelector('.v').textContent = v;
+    const el = st[i].querySelector('.d'); el.textContent = d; el.style.color = color||'var(--hint)'; };
+  set(0, s.openRequests, `${s.overdue} прострочені за SLA`, s.overdue?'var(--danger)':'var(--ok)');
+  set(1, s.chatsWaiting, s.chatsWaiting?'чекають диспетчера':'усе опрацьовано', s.chatsWaiting?'var(--warn)':'var(--ok)');
+  set(2, Math.round(100*s.metersDone/s.flats)+'%', `${s.metersDone} з ${s.flats}`, 'var(--warn)');
+  set(3, money(s.debtTotal), `${s.debtFlats} квартир`, 'var(--danger)');
+
+  const att = [];
+  D.requests.filter(r=>['new','assigned','in_progress'].includes(r.status))
+    .filter(r=>new Date(r.sla_deadline) < new Date())
+    .slice(0,3).forEach(r=>att.push(['🔴', `Заявка №${r.id} — ${r.title}`,
+      `${r.section}, кв. ${r.number} · прострочено${r.master_name?' · '+r.master_name:', майстра немає'}`, `openReq(${r.id})`]));
+  D.chats.filter(c=>c.status==='waiting').slice(0,2).forEach(c=>att.push(['💬',
+    `кв. ${c.number} — чекає відповіді`, cutTxt(c.last_text,60), `openChat(${c.id})`]));
+  const notDone = s.flats - s.metersDone;
+  if(notDone>0) att.push(['📊', `${notDone} квартир не подали покази`, 'до кінця періоду', `go('meters')`]);
+  document.getElementById('attention').innerHTML = att.length ? att.map(a=>
+    `<div class="row" onclick="${a[3]}"><span class="ic">${a[0]}</span><div class="body">
+      <div class="nm">${esc(a[1])}</div><div class="tiny muted">${esc(a[2])}</div></div><span class="chev">›</span></div>`).join('')
+    : '<div class="pad small muted" style="text-align:center;padding:26px">Усе під контролем — прострочених заявок і звернень без відповіді немає</div>';
+
+  const max = Math.max(1, ...D.byCategory.map(c=>+c.n));
+  document.getElementById('dash-cats').innerHTML = D.byCategory.length ? D.byCategory.map(c=>
+    `<div style="margin-bottom:9px"><div class="spread small"><span>${esc(c.category)}</span><b>${c.n}</b></div>
+      ${bar(100*c.n/max)}</div>`).join('')
+    : '<div class="small muted">За останні 30 днів заявок не було</div>';
+
+  const rows = document.querySelectorAll('#s-dash .card:last-of-type .row b');
+  if(rows[0]) rows[0].textContent = s.botClosed + s.chatsWaiting
+    ? Math.round(100*s.botClosed/(s.botClosed+s.chatsWaiting))+'%' : '—';
+  if(rows[1]) rows[1].textContent = s.avgCloseHours ? s.avgCloseHours+' год' : '—';
+  if(rows[2]) rows[2].textContent = (s.photoShare||0)+'%';
+}
+const cutTxt = (s,n)=>{ s=String(s||''); return s.length<=n?s:s.slice(0,n)+'…'; };
+
+/* ═══════════ Заявки ═══════════ */
+let reqFilter = -1;
+function renderReq(){
+  const counts = ST_ORDER.map(st=>D.requests.filter(r=>r.status===st).length);
+  document.getElementById('req-filters').innerHTML =
+    `<button class="${reqFilter<0?'on':''}" onclick="setReqFilter(-1)">Усі<span class="n">${D.requests.length}</span></button>` +
+    ST_ORDER.map((st,i)=>`<button class="${reqFilter===i?'on':''}" onclick="setReqFilter(${i})">
+      ${ST[st][0].replace('Нова','Нові').replace('Призначена','Призначені').replace('Виконана','Виконані')}
+      <span class="n">${counts[i]}</span></button>`).join('');
+  const list = D.requests.filter(r=>reqFilter<0 || r.status===ST_ORDER[reqFilter]);
+  document.getElementById('req-list').innerHTML = list.length ? list.map(r=>{
+    const st = ST[r.status]||ST.new;
+    const over = new Date(r.sla_deadline) < new Date() && ['new','assigned','in_progress'].includes(r.status);
+    const left = slaText(r);
+    return `<div class="row top" onclick="openReq(${r.id})"><span class="ic">${CAT_EMOJI[r.category]||'🔧'}</span>
+      <div class="body"><div class="nm">${esc(r.title)}</div>
+      <div class="tiny muted" style="margin-top:2px">№${r.id} · ${r.section.replace('Секція','с.')}, кв. ${r.number} · ${dOnly(r.created_at)}${r.master_name?' · '+shortName(r.master_name):''}</div>
+      <div class="tiny" style="margin-top:4px;white-space:nowrap;color:var(--${over?'danger':'hint'});font-weight:600">
+        ${r.master_name?'':'Без майстра · '}${left}</div></div>
+      <span class="chip ${st[1]}" style="margin-top:2px">${st[0]}</span></div>`;
+  }).join('') : '<div class="pad small muted" style="text-align:center;padding:26px">Заявок у цьому статусі немає</div>';
+}
+function slaText(r){
+  if(['done','cancelled'].includes(r.status))
+    return r.done_at ? 'Закрито ' + dOnly(r.done_at) + (r.rating?' · ⭐ '+r.rating:'') : '—';
+  const diff = (new Date(r.sla_deadline) - new Date()) / 3600000;
+  if(diff < 0) return `Прострочено ${Math.round(-diff)} год`;
+  return diff < 24 ? `Залишилось ${Math.round(diff)} год` : `Залишилось ${Math.round(diff/24)} дн`;
+}
+const shortName = n => { const p=String(n).split(' '); return p[1]?`${p[0]} ${p[1][0]}.`:p[0]; };
+function setReqFilter(i){ reqFilter=i; renderReq(); }
+
+let currentReq = null;
+function openReq(id){
+  const r = D.requests.find(x=>x.id===id); if(!r) return;
+  currentReq = r;
+  const st = ST[r.status]||ST.new;
+  const over = new Date(r.sla_deadline) < new Date() && !['done','cancelled'].includes(r.status);
+  document.getElementById('ro-ttl').textContent = (CAT_EMOJI[r.category]||'🔧')+' '+r.title;
+  document.getElementById('ro-chip').innerHTML = `<span class="chip ${st[1]}">${st[0]}</span>`;
+  document.getElementById('ro-meta').textContent =
+    `№${r.id} · ${r.section}, кв. ${r.number} · створено ${dt(r.created_at)}`;
+  document.getElementById('ro-text').textContent = r.description || '';
+  document.getElementById('ro-sla').innerHTML =
+    `<div class="row" style="cursor:default"><span class="ic">⏱️</span><div class="body">
+      <div class="nm" style="color:var(--${over?'danger':'text'})">${slaText(r)}</div>
+      <div class="tiny muted">Норматив для категорії — ${r.sla_hours} год</div></div></div>`;
+  document.getElementById('ro-master').innerHTML = r.master_name
+    ? `<div class="row" onclick="assignPrompt()"><span class="ava">${initials(r.master_name)}</span>
+        <div class="body"><div class="nm">${esc(r.master_name)}</div>
+        <div class="tiny muted">Змінити виконавця</div></div><span class="chev">›</span></div>`
+    : `<div class="row" onclick="assignPrompt()"><span class="ic">❗</span><div class="body">
+        <div class="nm" style="color:var(--danger)">Майстра не призначено</div>
+        <div class="tiny muted">Саме через це заявка порушує SLA</div></div><span class="chev">›</span></div>`;
+  document.getElementById('ro-tl').innerHTML =
+    `<li class="done"><div style="font-weight:500">Заявку прийнято</div><div class="tiny muted">${dt(r.created_at)}</div></li>` +
+    (r.assigned_at?`<li class="done"><div style="font-weight:500">Призначено майстра</div><div class="tiny muted">${dt(r.assigned_at)}</div></li>`:'') +
+    (r.done_at?`<li class="done"><div style="font-weight:500">Виконано</div><div class="tiny muted">${dt(r.done_at)}</div></li>`
+      :`<li class="now"><div style="font-weight:500">${r.status==='in_progress'?'Майстер у роботі':'Очікує виконання'}</div></li>`);
+  TITLES['req-one'] = ['Заявка №'+r.id, `${r.section}, кв. ${r.number}`];
+  go('req-one');
+}
+const initials = n => String(n).split(' ').slice(0,2).map(w=>w[0]).join('');
+
+function assignPrompt(){
+  const masters = D.staff.filter(s=>s.role==='master');
+  const box = document.getElementById('ro-master');
+  box.innerHTML = `<div class="pad tiny muted">Оберіть виконавця:</div>` + masters.map(m=>
+    `<div class="row" onclick="assign(${m.id})"><span class="ava">${initials(m.name)}</span>
+      <div class="body"><div class="nm">${esc(m.name)}</div><div class="tiny muted">${esc(m.spec||'')}</div></div>
+      <span class="chev">›</span></div>`).join('');
+}
+async function assign(masterId){
+  try{ await api(`/requests/${currentReq.id}/assign`, { master_id: masterId });
+    haptic('ok'); toast('Майстра призначено, йому надійшло сповіщення');
+    D = await api('/bootstrap'); renderAll(); openReq(currentReq.id);
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+async function setStatus(st){
+  try{ await api(`/requests/${currentReq.id}/status`, { status: st });
+    haptic('ok'); toast(st==='done'?'Заявку закрито':'Статус змінено');
+    D = await api('/bootstrap'); renderAll(); openReq(currentReq.id);
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+
+/* ═══════════ Звернення ═══════════ */
+let chatFilter = -1, currentChat = null;
+function renderChats(){
+  const F = [['Усі',-1],['Чекають диспетчера',0],['Веде асистент',1]];
+  const isWait = c => c.status==='waiting' || c.status==='staff';
+  document.getElementById('chat-filters').innerHTML = F.map(f=>
+    `<button class="${chatFilter===f[1]?'on':''}" onclick="setChatFilter(${f[1]})">${f[0]}
+      <span class="n">${f[1]<0?D.chats.length:D.chats.filter(c=>isWait(c)===(f[1]===0)).length}</span></button>`).join('');
+  const list = D.chats.filter(c=>chatFilter<0 || isWait(c)===(chatFilter===0));
+  document.getElementById('chat-list').innerHTML = list.length ? list.map(c=>{
+    const wait = c.status==='waiting';
+    const mins = c.last_at ? Math.round((Date.now()-new Date(c.last_at))/60000) : 0;
+    const waitLabel = wait ? (mins<60?`${mins} хв`:`${Math.round(mins/60)} год`) : '—';
+    return `<div class="row" onclick="openChat(${c.id})"><div class="body">
+      <div class="spread"><div class="nm">кв. ${c.number} · ${c.section.replace('Секція','с.')}</div>
+      <span class="chip ${wait?(mins>30?'r':'y'):'g'}">${waitLabel}</span></div>
+      <div class="tiny muted" style="margin-top:2px">${esc(cutTxt(c.last_text,64))}</div>
+      <div class="tiny" style="margin-top:3px;color:var(--hint)">${wait?'ескалація від 🤖':c.status==='staff'?'веде диспетчер':'🤖 асистент'}</div></div></div>`;
+  }).join('') : '<div class="pad small muted" style="text-align:center;padding:26px">Звернень немає</div>';
+}
+function setChatFilter(i){ chatFilter=i; renderChats(); }
+async function openChat(id){
+  const c = D.chats.find(x=>x.id===id); if(!c) return;
+  currentChat = c;
+  TITLES['chat-one'] = ['Діалог', `кв. ${c.number}, ${c.section.replace('Секція','с.')}`];
+  const head = document.querySelector('#s-chat-one .card.pad');
+  head.querySelector('div[style*="font-weight:600"]').textContent = `Квартира ${c.number}`;
+  head.querySelector('.tiny.muted').textContent = `${c.section} · чат #${c.id}`;
+  head.querySelector('.chip').textContent = c.status==='waiting' ? 'Ескалація 🤖' : c.status==='staff' ? 'Веде диспетчер' : 'Асистент';
+  go('chat-one');
+  try{
+    const msgs = await api(`/chats/${id}/messages`);
+    document.getElementById('dlg').innerHTML = msgs.map(m=>{
+      const cls = m.author==='user'?'me':m.author==='bot'?'bot':'them';
+      const who = m.author==='staff'&&m.staff_name?`<b>${esc(m.staff_name)}:</b> `:(m.author==='bot'?'🤖 ':'');
+      return `<div class="msg ${cls}">${who}${esc(m.text)}</div>`;
+    }).join('');
+  }catch(e){ toast(e.message); }
+}
+async function sendReply(){
+  const ta = document.querySelector('#s-chat-one textarea');
+  const text = ta.value.trim(); if(!text) return toast('Напишіть відповідь');
+  try{ await api(`/chats/${currentChat.id}/reply`, { text });
+    haptic('ok'); ta.value=''; toast('Відповідь надіслано мешканцю');
+    D = await api('/bootstrap'); renderChats(); openChat(currentChat.id);
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+
+/* ═══════════ Гроші ═══════════ */
+function renderMoney(){
+  const s = D.stats;
+  const card = document.querySelector('#s-money .card.pad');
+  card.querySelector('.tiny.muted').textContent = periodTitle();
+  const vals = card.querySelectorAll('div[style*="font-size:20px"]');
+  if(vals[0]) vals[0].textContent = money(s.accrued);
+  if(vals[1]) vals[1].textContent = money(s.paid);
+  const pct = s.accrued ? Math.round(100*s.paid/s.accrued) : 0;
+  card.querySelector('.bar i').style.width = pct+'%';
+  card.querySelectorAll('.tiny.muted')[1].textContent = `Рівень оплати ${pct}%`;
+  const links = document.querySelectorAll('#s-money .card:nth-of-type(2) .tiny.muted');
+  if(links[0]) links[0].textContent = `${s.debtFlats} квартир · ${money(s.debtTotal)}`;
+  document.getElementById('bill-list').innerHTML = D.debtors.slice(0,20).map(d=>
+    `<div class="row" onclick="openFlat(${d.id})"><div class="body">
+      <div class="spread"><div class="nm">кв. ${d.number}</div><b style="color:var(--danger)">${money2(d.debt)}</b></div>
+      <div class="tiny muted" style="margin-top:2px">${esc(d.owner_name||'')}</div>
+      <div class="tiny muted" style="margin-top:2px">${d.section} · період ${d.period}</div></div>
+      <span class="chev">›</span></div>`).join('')
+    || '<div class="pad small muted" style="text-align:center;padding:26px">Боржників немає</div>';
+}
+let debtFilter = 0;
+function renderDebt(){
+  const F=[['Усі',0],['Понад 5 000 ₴',1],['Понад 10 000 ₴',2]];
+  document.getElementById('debt-filters').innerHTML = F.map(f=>
+    `<button class="${debtFilter===f[1]?'on':''}" onclick="setDebtFilter(${f[1]})">${f[0]}</button>`).join('');
+  const list = D.debtors.filter(d=>debtFilter===0 || (debtFilter===1 ? d.debt>5000 : d.debt>10000));
+  document.getElementById('debt-list').innerHTML = list.length ? list.map(d=>
+    `<div class="row" onclick="openFlat(${d.id})"><div class="body">
+      <div class="spread"><div class="nm">кв. ${d.number}</div><b style="color:var(--danger)">${money2(d.debt)}</b></div>
+      <div class="tiny muted" style="margin-top:2px">${esc(d.owner_name||'')}</div>
+      <div class="tiny muted" style="margin-top:2px">${esc(d.owner_phone||'')} · ${d.section}</div></div></div>`).join('')
+    : '<div class="pad small muted" style="text-align:center;padding:26px">У цьому діапазоні боржників немає</div>';
+}
+function setDebtFilter(i){ debtFilter=i; renderDebt(); }
+async function remindDebtors(){
+  const ids = D.debtors.filter(d=>debtFilter===0||(debtFilter===1?d.debt>5000:d.debt>10000)).map(d=>d.id);
+  if(!ids.length) return toast('Немає кому надсилати');
+  try{
+    const r = await api('/debtors/remind', { flat_ids: ids });
+    haptic('ok');
+    toast(r.sent ? `Нагадування надіслано: ${r.sent}` :
+      `Знайдено ${r.matched} отримувачів. Розсилка вимкнена — у .env немає BOT_TOKEN`);
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+function renderTariffs(){
+  document.getElementById('tariff-list').innerHTML = D.tariffs.map(t=>
+    `<div class="row" style="cursor:default"><div class="body"><div class="nm">${esc(t.name)}</div>
+      <div class="tiny muted">чинний з ${t.valid_from}</div></div>
+      <b class="small">${(+t.price).toFixed(2)} ${esc(t.unit)}</b></div>`).join('');
+}
+
+/* ═══════════ Показники ═══════════ */
+let meterFilter = -1;
+function renderMeters(){
+  const s = D.stats;
+  const card = document.querySelector('#s-meters .card.pad');
+  card.querySelector('div[style*="font-size:20px"]').textContent = `${s.metersDone} з ${s.flats}`;
+  const pct = Math.round(100*s.metersDone/s.flats);
+  card.querySelector('.chip').textContent = pct+'%';
+  card.querySelector('.bar i').style.width = pct+'%';
+  card.querySelectorAll('.tiny.muted')[1].textContent =
+    `${s.photoShare}% подано фото з розпізнаванням · ${s.flats-s.metersDone} квартир ще не подали`;
+
+  const F=[['Усі',-1],['Прийнято',0],['Перевірити',1]];
+  document.getElementById('meter-filters').innerHTML = F.map(f=>
+    `<button class="${meterFilter===f[1]?'on':''}" onclick="setMeterFilter(${f[1]})">${f[0]}
+      <span class="n">${f[1]<0?D.meters.length:D.meters.filter(m=>(m.status!=='accepted')===(f[1]===1)).length}</span></button>`).join('');
+  const list = D.meters.filter(m=>meterFilter<0 || (m.status!=='accepted')===(meterFilter===1));
+  const KIND = { cold:'Холодна', hot:'Гаряча', elec:'Електрика', heat:'Тепло' };
+  document.getElementById('meter-list').innerHTML = list.length ? list.map(m=>{
+    const delta = m.prev_value!=null ? (+m.value - +m.prev_value).toFixed(1) : '—';
+    const cls = m.status==='accepted'?'g':m.status==='warn'?'r':'b';
+    const lbl = m.status==='accepted'?'Прийнято':m.status==='warn'?'Перевірити':'На перевірці';
+    return `<div class="row" onclick="checkMeter(${m.id})"><div class="body">
+      <div class="spread"><div class="nm">кв. ${m.number} · ${KIND[m.kind]}</div><span class="chip ${cls}">${lbl}</span></div>
+      <div class="tiny muted" style="margin-top:2px">Показ ${m.value}${m.prev_value!=null?` · попередній ${m.prev_value} · витрата ${delta}`:''}</div>
+      <div class="tiny muted" style="margin-top:2px">Джерело: ${m.source==='photo'?`🤖 фото${m.confidence?' · '+m.confidence+'%':''}`:'вручну'}${m.note?' · '+esc(m.note):''}</div></div>
+      <span class="chev">›</span></div>`;
+  }).join('') : '<div class="pad small muted" style="text-align:center;padding:26px">Порожньо</div>';
+}
+function setMeterFilter(i){ meterFilter=i; renderMeters(); }
+async function checkMeter(id){
+  try{ await api(`/meters/${id}/status`, { status:'accepted' });
+    haptic('ok'); toast('Показ прийнято');
+    D = await api('/bootstrap'); renderMeters();
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+function exportMeters(){
+  const url = `/api/admin/meters/export?period=${D.stats.metersPeriod}`;
+  if(inTG && tg.openLink) tg.openLink(location.origin + url); else window.open(url,'_blank');
+  toast('Файл формується');
+}
+
+/* ═══════════ Перепустки ═══════════ */
+function renderPasses(){
+  const TYPE = { guest:'👤', delivery:'📦', taxi:'🚕', worker:'🔨' };
+  document.getElementById('pass-list').innerHTML = D.passes.length ? D.passes.map(p=>{
+    const active = p.status==='active' && new Date(p.valid_until)>new Date();
+    return `<div class="row" style="cursor:default"><span class="ic">${TYPE[p.type]||'👤'}</span><div class="body">
+      <div class="spread"><div class="nm">${esc(p.person_name||'Гість')}</div>
+      <span class="chip ${active?'g':'n'}">${active?'Діє':p.status==='used'?'Використано':'Прострочено'}</span></div>
+      <div class="tiny muted" style="margin-top:2px">${p.car?esc(p.car)+' · ':''}від кв. ${p.number}</div>
+      <div class="tiny muted" style="margin-top:2px">Код ${p.code} · до ${dt(p.valid_until)}</div></div></div>`;
+  }).join('') : '<div class="pad small muted" style="text-align:center;padding:26px">Активних перепусток немає</div>';
+}
+
+/* ═══════════ Новини ═══════════ */
+function renderNews(){
+  document.getElementById('news-list').innerHTML = D.news.map(n=>
+    `<div class="row" style="cursor:default"><span class="ic">${n.emoji}</span><div class="body">
+      <div class="spread"><div class="nm">${esc(n.title)}</div>
+      ${n.kind==='emergency'?'<span class="chip r">Аварійне</span>':''}</div>
+      <div class="tiny muted" style="margin-top:2px">${dt(n.created_at)} · ${esc(n.audience)} · ${n.delivered} доставлено</div></div></div>`).join('');
+}
+async function publishNews(){
+  const s = document.getElementById('s-news');
+  const title = s.querySelector('input').value.trim();
+  const body = s.querySelector('textarea').value.trim();
+  const sels = s.querySelectorAll('select');
+  if(!title || !body) return toast('Потрібні заголовок і текст');
+  const kind = ['normal','emergency','works'][sels[0].selectedIndex];
+  try{
+    const r = await api('/news', { title, body, kind, audience: sels[1].value });
+    haptic('ok');
+    toast(r.pushed ? `Опубліковано, push надіслано ${r.pushed}` :
+      `Опубліковано для ${r.delivered} квартир. Push вимкнено — у .env немає BOT_TOKEN`);
+    s.querySelector('input').value=''; s.querySelector('textarea').value='';
+    D = await api('/bootstrap'); renderNews(); renderDash();
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+
+/* ═══════════ Голосування ═══════════ */
+function renderVote(){
+  const v = D.vote, sec = document.getElementById('s-vote');
+  if(!v){ sec.querySelector('.card').innerHTML =
+    '<div class="pad small muted" style="text-align:center;padding:26px">Активних опитувань немає</div>'; return; }
+  sec.querySelector('div[style*="font-weight:600"]').textContent = v.title;
+  sec.querySelector('.tiny.muted').textContent =
+    `До ${v.ends_at} · проголосувало ${v.total} з ${D.stats.flats} квартир (${Math.round(100*v.total/D.stats.flats)}%)`;
+  document.getElementById('vote-live').innerHTML = v.options.map(o=>{
+    const pct = v.total ? Math.round(100*o.votes/v.total) : 0;
+    return `<div style="margin-bottom:11px"><div class="spread small"><span>${esc(o.text)}</span>
+      <b>${pct}% (${o.votes} кв.)</b></div>${bar(pct)}</div>`; }).join('');
+  document.getElementById('vote-done').innerHTML =
+    '<div class="pad small muted">Завершені голосування зберігаються з протоколом і переліком квартир.</div>';
+}
+
+/* ═══════════ Квартири ═══════════ */
+let flatFilter = 0, flatQuery = '';
+function renderFlats(){
+  const F=[['Усі',0],['Здаються',1],['Не підключені',2]];
+  document.getElementById('flat-filters').innerHTML = F.map(f=>
+    `<button class="${flatFilter===f[1]?'on':''}" onclick="setFlatFilter(${f[1]})">${f[0]}</button>`).join('');
+  const inp = document.querySelector('#s-flats .search input');
+  if(inp && !inp.oninput) inp.oninput = e => { flatQuery = e.target.value.toLowerCase(); renderFlats(); };
+  const list = D.flats.filter(f=>{
+    if(flatFilter===1 && !(f.roles||'').includes('tenant')) return false;
+    if(flatFilter===2 && f.users>0) return false;
+    if(flatQuery && !(`${f.number} ${f.owner_name||''} ${f.owner_phone||''}`.toLowerCase().includes(flatQuery))) return false;
+    return true;
+  });
+  document.getElementById('flat-list').innerHTML = list.slice(0,60).map(f=>
+    `<div class="row" onclick="openFlat(${f.id})"><div class="body">
+      <div class="spread"><div class="nm">кв. ${f.number}</div>
+      <span class="chip ${f.users?'g':'n'}">${f.users?'Підключено':'Немає'}</span></div>
+      <div class="tiny muted" style="margin-top:2px">${esc(f.owner_name||'')}</div>
+      <div class="tiny muted" style="margin-top:2px">${f.section} · ${f.area} м² · ${(f.roles||'').includes('tenant')?'здається':'власник'}</div></div>
+      <span class="chev">›</span></div>`).join('')
+    || '<div class="pad small muted" style="text-align:center;padding:26px">Нічого не знайдено</div>';
+}
+function setFlatFilter(i){ flatFilter=i; renderFlats(); }
+function openFlat(id){
+  const f = D.flats.find(x=>x.id===id) || D.debtors.find(x=>x.id===id);
+  if(!f) return toast('Квартиру не знайдено');
+  const debt = (D.debtors.find(d=>d.id===id)||{}).debt;
+  const rows = document.querySelectorAll('#s-flat-one .card:first-of-type .row .nm');
+  if(rows[0]) rows[0].textContent = `Булаховського 2, ${(f.section||'').toLowerCase()}, кв. ${f.number}`;
+  if(rows[1]) rows[1].textContent = f.owner_name || '—';
+  if(rows[2]) rows[2].textContent = `${f.area||'—'} м²`;
+  if(rows[3]){ rows[3].textContent = debt ? money2(debt) : 'Заборгованості немає';
+    rows[3].style.color = debt ? 'var(--danger)' : 'var(--ok)'; }
+  const reqs = D.requests.filter(r=>r.number===f.number);
+  const hist = document.querySelector('#s-flat-one .card:last-of-type');
+  if(hist) hist.innerHTML = reqs.length ? reqs.slice(0,4).map(r=>
+    `<div class="row" onclick="openReq(${r.id})"><span class="ic">${CAT_EMOJI[r.category]||'🔧'}</span>
+      <div class="body"><div class="nm">${esc(r.title)}</div>
+      <div class="tiny muted">№${r.id} · ${(ST[r.status]||ST.new)[0]}</div></div><span class="chev">›</span></div>`).join('')
+    : '<div class="pad small muted" style="text-align:center">Заявок не було</div>';
+  TITLES['flat-one'] = ['Квартира '+f.number, f.section||''];
+  go('flat-one');
+}
+
+/* ═══════════ Персонал ═══════════ */
+function renderStaff(){
+  const ROLE = { manager:['Керуючий','b'], dispatcher:['Диспетчер','b'], master:['Майстер','n'],
+    accountant:['Бухгалтер','n'], developer:['Забудовник','y'] };
+  document.getElementById('staff-list').innerHTML = D.staff.map(s=>{
+    const r = ROLE[s.role]||['—','n'];
+    const open = D.requests.filter(x=>x.master_name===s.name && ['assigned','in_progress'].includes(x.status)).length;
+    return `<div class="row" style="cursor:default"><div class="body">
+      <div class="spread"><div class="nm">${esc(s.name)}</div><span class="chip ${r[1]}">${r[0]}</span></div>
+      <div class="tiny muted" style="margin-top:2px">${esc(s.spec||'')}${s.role==='master'?` · ${open} відкритих`:''}</div></div></div>`;
+  }).join('');
+}
+
+boot();
+</script>
+</body>
+</html>

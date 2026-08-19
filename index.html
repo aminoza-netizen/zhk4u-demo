@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ЖК 4U — кабінет мешканця</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:var(--tg-theme-secondary-bg-color,#f0f1f5); --card:var(--tg-theme-bg-color,#ffffff);
+  --text:var(--tg-theme-text-color,#0d0d0f); --hint:var(--tg-theme-hint-color,#6e7278);
+  --accent:var(--tg-theme-button-color,#2481cc); --accent-fill:var(--tg-theme-button-color,#2481cc);
+  --accent-soft:rgba(36,129,204,.12); --sep:rgba(60,60,67,.13);
+  --danger:#e5484d; --danger-soft:rgba(229,72,77,.12);
+  --ok:#28a745; --ok-soft:rgba(40,167,69,.13);
+  --warn:#e8890c; --warn-soft:rgba(232,137,12,.14);
+  --r:16px; --shadow:0 1px 2px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:var(--tg-theme-secondary-bg-color,#15202b); --card:var(--tg-theme-bg-color,#212d3b);
+    --text:var(--tg-theme-text-color,#f5f7fa); --hint:var(--tg-theme-hint-color,#93a1b0);
+    --accent:var(--tg-theme-button-color,#61a8e0); --accent-fill:var(--tg-theme-button-color,#2b6ca8);
+    --accent-soft:rgba(97,168,224,.16); --sep:rgba(255,255,255,.08);
+    --danger-soft:rgba(229,72,77,.18); --ok-soft:rgba(40,167,69,.18); --warn-soft:rgba(232,137,12,.2);
+    --shadow:none;
+  }
+}
+body{
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  background:var(--bg); color:var(--text);
+  display:flex; align-items:center; justify-content:center; min-height:100vh;
+}
+/* Рамка «телефону» на десктопі */
+.phone{
+  width:100%; max-width:412px; height:100vh; max-height:880px;
+  background:var(--bg); position:relative; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+@media (min-width:640px){
+  body{background:#c9ccd3}
+  @media (prefers-color-scheme:dark){body{background:#0b1119}}
+  .phone{border-radius:30px; box-shadow:0 24px 60px rgba(0,0,0,.35); height:844px}
+}
+
+/* ── Верхня панель ───────────────────────────── */
+.topbar{
+  flex:0 0 auto; display:flex; align-items:center; gap:10px;
+  padding:14px 14px 10px; background:var(--card); border-bottom:1px solid var(--sep);
+  position:relative; z-index:5;
+}
+.topbar .back{display:none; background:none; border:0; color:var(--accent); font-size:22px; cursor:pointer; padding:0 4px}
+.topbar.sub .back{display:block}
+.topbar .ttl{flex:1; min-width:0; font-size:17px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.topbar .sub-ttl{display:block; font-size:12px; font-weight:400; color:var(--hint)}
+.topbar .icobtn{background:none; border:0; cursor:pointer; color:var(--text); font-size:19px; position:relative; padding:2px 4px}
+.topbar .icobtn .dot{position:absolute; top:0; right:1px; width:8px; height:8px; border-radius:50%; background:var(--danger)}
+
+/* ── Тіло ────────────────────────────────────── */
+main{flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding-bottom:18px}
+.screen{display:none; padding:14px 14px 0; animation:in .16s ease}
+.screen.active{display:block}
+.screen.flat-pad{padding:0}
+@keyframes in{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+
+/* ── Атоми ───────────────────────────────────── */
+.card{background:var(--card); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden}
+.card + .card, .blk + .blk{margin-top:12px}
+.pad{padding:14px}
+.sec-ttl{font-size:12px; font-weight:600; letter-spacing:.6px; text-transform:uppercase; color:var(--hint); margin:20px 4px 8px}
+.sec-ttl:first-child{margin-top:4px}
+.muted{color:var(--hint)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.row{display:flex; align-items:center; gap:12px; padding:13px 14px; border-bottom:1px solid var(--sep); cursor:pointer}
+.row:last-child{border-bottom:0}
+.row .ic{width:30px; height:30px; flex:0 0 30px; border-radius:9px; display:grid; place-items:center; font-size:15px; background:var(--accent-soft)}
+.row .body{flex:1; min-width:0}
+.row .nm{font-weight:500}
+.row .chev{color:var(--hint); font-size:17px}
+.spread{display:flex; align-items:center; justify-content:space-between; gap:10px}
+
+.btn{
+  display:block; width:100%; padding:14px; border:0; border-radius:12px; cursor:pointer;
+  background:var(--accent-fill); color:#fff; font-size:16px; font-weight:600; font-family:inherit;
+}
+.btn:active{opacity:.82}
+.btn.ghost{background:var(--accent-soft); color:var(--accent)}
+.btn.sm{padding:10px; font-size:14px; border-radius:10px}
+.btn[disabled]{opacity:.45; cursor:default}
+
+.chip{display:inline-block; padding:3px 9px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap}
+.chip.b{background:var(--accent-soft); color:var(--accent)}
+.chip.g{background:var(--ok-soft); color:var(--ok)}
+.chip.r{background:var(--danger-soft); color:var(--danger)}
+.chip.y{background:var(--warn-soft); color:var(--warn)}
+.chip.n{background:var(--sep); color:var(--hint)}
+
+label.f{display:block; padding:12px 14px; border-bottom:1px solid var(--sep)}
+label.f:last-child{border-bottom:0}
+label.f .lb{display:block; font-size:12px; color:var(--hint); margin-bottom:3px}
+input,textarea,select{
+  width:100%; border:0; background:none; color:var(--text); font:inherit; font-size:16px; outline:none; resize:none;
+}
+input::placeholder,textarea::placeholder{color:var(--hint)}
+
+.grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:8px}
+.qa{background:var(--card); border-radius:14px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:var(--shadow)}
+.qa .e{font-size:22px; display:block; margin-bottom:5px}
+.qa .t{font-size:11px; line-height:1.25; color:var(--hint)}
+
+.banner{display:flex; gap:11px; padding:13px 14px; border-radius:var(--r); cursor:pointer}
+.banner.r{background:var(--danger-soft)}
+.banner.y{background:var(--warn-soft)}
+.banner .e{font-size:19px; line-height:1.2}
+.banner .h{font-weight:600; font-size:14px; margin-bottom:2px}
+
+/* Баланс */
+.balance{background:linear-gradient(135deg,#2481cc,#1c5f99); color:#fff; border-radius:var(--r); padding:18px; box-shadow:var(--shadow)}
+.balance .lb{font-size:13px; opacity:.85}
+.balance .sum{font-size:34px; font-weight:700; letter-spacing:-.5px; margin:2px 0 4px}
+.balance .due{font-size:13px; opacity:.85}
+.balance .btn{margin-top:14px; background:#fff; color:#1c5f99}
+
+/* Таймлайн */
+.tl{position:relative; padding-left:26px}
+.tl li{list-style:none; position:relative; padding-bottom:16px}
+.tl li:last-child{padding-bottom:0}
+.tl li::before{content:''; position:absolute; left:-19px; top:3px; width:11px; height:11px; border-radius:50%; background:var(--sep)}
+.tl li.done::before{background:var(--ok)}
+.tl li.now::before{background:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+.tl li::after{content:''; position:absolute; left:-14.5px; top:16px; bottom:0; width:2px; background:var(--sep)}
+.tl li:last-child::after{display:none}
+
+/* Чат */
+.chatwrap{display:flex; flex-direction:column; flex:1; min-height:0}
+main.chatmode{overflow:hidden; padding-bottom:0}
+#s-chat.active{display:flex; flex-direction:column; height:100%}
+.msgs{flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:8px}
+.msg{max-width:78%; padding:9px 12px; border-radius:15px; font-size:15px; line-height:1.35}
+.msg.them{background:var(--card); border-bottom-left-radius:5px; align-self:flex-start}
+.msg.me{background:var(--accent-fill); color:#fff; border-bottom-right-radius:5px; align-self:flex-end}
+.msg .tm{font-size:10px; opacity:.6; display:block; text-align:right; margin-top:2px}
+.daysep{align-self:center; font-size:11px; color:var(--hint); padding:3px 10px; background:var(--card); border-radius:10px}
+.composer{flex:0 0 auto; display:flex; gap:8px; align-items:flex-end; padding:9px 12px; background:var(--card); border-top:1px solid var(--sep)}
+.composer input{background:var(--bg); border-radius:18px; padding:10px 14px; font-size:15px}
+.composer button{flex:0 0 42px; height:42px; border-radius:50%; border:0; background:var(--accent-fill); color:#fff; font-size:17px; cursor:pointer}
+
+/* Голосування */
+.bar{height:7px; border-radius:4px; background:var(--sep); overflow:hidden; margin-top:5px}
+.bar i{display:block; height:100%; background:var(--accent)}
+.opt{display:flex; gap:11px; align-items:center; padding:13px 14px; border-bottom:1px solid var(--sep); cursor:pointer}
+.opt:last-child{border-bottom:0}
+.opt .rd{width:21px; height:21px; flex:0 0 21px; border-radius:50%; border:2px solid var(--sep)}
+.opt.sel .rd{border-color:var(--accent); background:radial-gradient(circle,var(--accent) 0 42%,transparent 46%)}
+
+/* QR */
+.qr{width:180px; height:180px; margin:0 auto; display:grid; grid-template-columns:repeat(25,1fr); background:#fff; padding:8px; border-radius:10px}
+.qr i{background:#fff}
+.qr i.on{background:#000}
+
+/* Нижні таби */
+.tabbar{
+  flex:0 0 auto; display:grid; grid-template-columns:repeat(5,1fr);
+  background:var(--card); border-top:1px solid var(--sep); padding-bottom:env(safe-area-inset-bottom);
+}
+.tabbar button{background:none; border:0; padding:7px 0 9px; cursor:pointer; color:var(--hint); font-family:inherit; position:relative}
+.tabbar button .e{display:block; font-size:19px; margin-bottom:2px; filter:grayscale(1); opacity:.6}
+.tabbar button .t{font-size:10px}
+.tabbar button.on{color:var(--accent)}
+.tabbar button.on .e{filter:none; opacity:1}
+.tabbar .badge{position:absolute; top:4px; left:50%; margin-left:5px; min-width:16px; height:16px; border-radius:8px; background:var(--danger); color:#fff; font-size:10px; line-height:16px; padding:0 4px}
+
+.toast{
+  position:fixed; left:50%; bottom:92px; transform:translate(-50%,14px); z-index:99;
+  background:rgba(20,22,26,.94); color:#fff; padding:11px 18px; border-radius:22px; font-size:14px;
+  opacity:0; pointer-events:none; transition:.2s; max-width:88%; text-align:center;
+}
+.toast.on{opacity:1; transform:translate(-50%,0)}
+.tabbar.tenant{grid-template-columns:repeat(4,1fr)}
+.tabbar.tenant [data-tab="bills"]{display:none}
+.rolebar{display:flex; align-items:center; gap:8px; padding:7px 14px; background:var(--accent-soft); color:var(--accent); font-size:12px; font-weight:600}
+.rolebar button{margin-left:auto; background:none; border:1px solid currentColor; color:inherit; font:inherit; font-size:11px; padding:3px 9px; border-radius:20px; cursor:pointer}
+.sw{width:44px; height:26px; flex:0 0 44px; border-radius:14px; background:var(--sep); position:relative; transition:.18s}
+.sw::after{content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:.18s; box-shadow:0 1px 3px rgba(0,0,0,.28)}
+.sw.on{background:var(--ok)}
+.sw.on::after{transform:translateX(18px)}
+.ai{display:flex; gap:10px; padding:13px 14px; border-radius:var(--r); background:linear-gradient(135deg,rgba(36,129,204,.15),rgba(150,82,204,.15))}
+.ai .e{font-size:18px; line-height:1.2}
+.scanning{display:flex; align-items:center; gap:10px; padding:15px 14px; color:var(--accent); font-weight:600; font-size:14px}
+.spin{width:16px; height:16px; border:2px solid var(--accent-soft); border-top-color:var(--accent); border-radius:50%; animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.chips{display:flex; gap:6px; overflow-x:auto; padding:9px 12px 2px; background:var(--card); border-top:1px solid var(--sep)}
+.chips::-webkit-scrollbar{display:none}
+.chips{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.chips button{white-space:nowrap; background:var(--accent-soft); color:var(--accent); border:0;
+  border-radius:16px; padding:11px 14px; font:inherit; font-size:13px; cursor:pointer; min-height:42px}
+.grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+.msg.bot{background:var(--card); border-bottom-left-radius:5px; align-self:flex-start; border-left:3px solid var(--accent)}
+.hide{display:none !important}
+body.in-tg{background:var(--bg); display:block}
+body.in-tg .phone{max-width:none; width:100%; height:var(--tg-viewport-stable-height,100vh);
+  max-height:none; border-radius:0; box-shadow:none}
+body.in-tg .topbar .back{display:none !important}
+body.in-tg .protobar{display:none}
+body.in-tg .btn.main-act{display:none}
+.tabbar.off{display:none}
+.empty{text-align:center; padding:30px 20px}
+.empty .e{font-size:34px}
+.empty .t{font-weight:600; margin-top:9px}
+.empty .s{font-size:13px; color:var(--hint); margin-top:5px; line-height:1.5}
+.empty .btn{width:auto; display:inline-block; padding:10px 20px; margin-top:15px; font-size:14px}
+.onb{text-align:center; padding:26px 20px 0}
+.onb .big{font-size:52px}
+.onb h2{font-size:22px; margin:14px 0 8px}
+.onb p{color:var(--hint); font-size:14px; line-height:1.55}
+.ph{aspect-ratio:1; border-radius:10px; background:linear-gradient(135deg,#cfd6de,#aeb8c4); display:grid; place-items:center; font-size:22px}
+@media (prefers-color-scheme:dark){.ph{background:linear-gradient(135deg,#38434f,#2a333d)}}
+.phgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; padding:12px}
+.stars{font-size:31px; letter-spacing:5px; text-align:center; padding:8px 0 4px; cursor:pointer}
+.doc{display:flex; gap:12px; align-items:center; padding:13px 14px; border-bottom:1px solid var(--sep); cursor:pointer}
+.doc:last-child{border-bottom:0}
+.doc .ic{width:34px; height:40px; flex:0 0 34px; border-radius:5px; background:var(--danger-soft); color:var(--danger); display:grid; place-items:center; font-size:10px; font-weight:700}
+.slots{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+.slot{display:grid; place-items:center; padding:12px 8px; min-height:44px; border-radius:9px;
+  border:1px solid var(--sep); font-size:14px; cursor:pointer}
+.slot.busy{opacity:.35; text-decoration:line-through; cursor:default}
+.slot.pick{background:var(--accent-fill); color:#fff; border-color:transparent}
+.receipt{background:#fff; color:#111; border-radius:10px; padding:16px; font-size:12px; line-height:1.55}
+.receipt hr{border:0; border-top:1px dashed #bbb; margin:9px 0}
+.receipt .rrow{display:flex; justify-content:space-between; gap:10px}
+.receipt .rrow b{white-space:nowrap}
+.pushdemo{background:rgba(30,34,40,.94); color:#fff; border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.45}
+.pushdemo b{display:block; font-size:14px; margin-bottom:2px}
+.protobar{background:var(--warn-soft); color:var(--warn); text-align:center; font-size:11px; padding:4px; font-weight:600; letter-spacing:.4px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="protobar hide" id="devbar">ДЕМО-РЕЖИМ · підпис Telegram не перевіряється</div>
+  <div class="rolebar hide" id="rolebar">👤 Ви дивитесь очима орендаря<button onclick="setRole('owner')">Вийти з режиму</button></div>
+
+  <div class="topbar" id="topbar">
+    <button class="back" onclick="back()">‹</button>
+    <div class="ttl" id="ttl">ЖК 4U<span class="sub-ttl" id="subttl">Секція 2, кв. 284</span></div>
+    <button class="icobtn" onclick="go('chat')">💬<span class="dot"></span></button>
+  </div>
+
+  <main id="main">
+
+    <!-- ═══ ГОЛОВНА ═══ -->
+    <section class="screen active" id="s-home">
+      <div class="card pad tenant-only hide" id="home-tenant">
+        <div class="spread"><div><div class="tiny muted">Ваш доступ до кв. 284</div>
+        <div style="font-size:18px; font-weight:700; margin-top:2px">Орендар · до 31.12.2026</div></div><span class="chip g">Активний</span></div>
+        <div class="small muted" style="margin-top:9px">Доступ надав власник — Петренко А.С. Рахунки та голосування він лишив за собою.</div>
+      </div>
+      <div class="balance owner-only">
+        <div class="lb">До сплати за липень 2026</div>
+        <div class="sum">2 847,50 ₴</div>
+        <div class="due">Термін оплати — до 20 серпня</div>
+        <button class="btn" onclick="go('bills')">Оплатити</button>
+      </div>
+
+      <div class="grid4" style="margin-top:12px">
+        <div class="qa" onclick="go('meters')"><span class="e">💧</span><span class="t">Показники</span></div>
+        <div class="qa" onclick="go('req-new')"><span class="e">🔧</span><span class="t">Заявка</span></div>
+        <div class="qa" onclick="go('pass-new')"><span class="e">🎫</span><span class="t">Перепустка</span></div>
+        <div class="qa owner-only" onclick="go('vote')"><span class="e">🗳️</span><span class="t">Голосування</span></div>
+        <div class="qa tenant-only hide" onclick="go('chat')"><span class="e">🤖</span><span class="t">Запитати</span></div>
+      </div>
+
+      <div style="margin-top:12px" class="banner r" onclick="go('news')">
+        <span class="e">⚠️</span>
+        <div>
+          <div class="h">Відключення холодної води</div>
+          <div class="small">19 серпня, 09:00–17:00 · секції 1 і 2</div>
+        </div>
+      </div>
+
+      <div class="banner y" style="margin-top:10px" onclick="go('meters')">
+        <span class="e">📊</span>
+        <div>
+          <div class="h">Передайте показники лічильників</div>
+          <div class="small">Залишилось 7 днів — до 25 серпня</div>
+        </div>
+      </div>
+
+      <div class="sec-ttl">Мої заявки</div>
+      <div class="card" id="home-reqs"></div>
+
+      <div class="sec-ttl">Останні новини</div>
+      <div class="card" id="home-news"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ РАХУНКИ ═══ -->
+    <section class="screen" id="s-bills">
+      <div class="balance">
+        <div class="lb">Загальна заборгованість</div>
+        <div class="sum">2 847,50 ₴</div>
+        <div class="due">у т.ч. борг за минулий період 799,00 ₴</div>
+        <button class="btn main-act" onclick="toast('Прототип: тут буде оплата або платіжний QR')">Оплатити 2 847,50 ₴</button>
+      </div>
+
+      <div class="sec-ttl">Нарахування за липень 2026</div>
+      <div class="card" id="bill-lines"></div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="row" onclick="go('receipt')"><span class="ic">📄</span><div class="body"><div class="nm">Квитанція за липень</div><div class="tiny muted">PDF · для друку та банку</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('receipt')"><span class="ic">📱</span><div class="body"><div class="nm">Платіжний QR</div><div class="tiny muted">Сканувати в застосунку банку</div></div><span class="chev">›</span></div>
+      </div>
+
+      <div class="sec-ttl">Історія періодів</div>
+      <div class="card" id="bill-history"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ПОКАЗНИКИ ═══ -->
+    <section class="screen" id="s-meters">
+      <div class="banner y"><span class="e">🗓️</span><div><div class="h">Період подачі: 20–25 серпня</div><div class="small">Показники за серпень 2026</div></div></div>
+
+      <div class="sec-ttl">Введіть покази</div>
+      <div class="card" id="meter-fields"></div>
+
+      <div class="card" style="margin-top:12px" id="ai-scan-card">
+        <div class="row" onclick="aiScan()"><span class="ic">📷</span><div class="body"><div class="nm">Сфотографувати лічильник</div><div class="tiny muted">Розпізнаємо цифри самі — вам лишиться перевірити</div></div><span class="chev">›</span></div>
+      </div>
+
+      <div style="margin-top:14px"><button class="btn main-act" onclick="submitMeters()">Передати показники</button></div>
+
+      <div class="sec-ttl">Історія подачі</div>
+      <div class="card">
+        <div class="row"><div class="body"><div class="nm">Липень 2026</div><div class="tiny muted">Х.в. 214 · Г.в. 98 · Ел. 5 421</div></div><span class="chip g">Прийнято</span></div>
+        <div class="row"><div class="body"><div class="nm">Червень 2026</div><div class="tiny muted">Х.в. 206 · Г.в. 92 · Ел. 5 233</div></div><span class="chip g">Прийнято</span></div>
+        <div class="row"><div class="body"><div class="nm">Травень 2026</div><div class="tiny muted">Не подано — нараховано за нормативом</div></div><span class="chip y">Норматив</span></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЗАЯВКИ ═══ -->
+    <section class="screen" id="s-req">
+      <button class="btn" onclick="go('req-new')">+ Нова заявка</button>
+      <div class="sec-ttl">Активні</div>
+      <div class="card" id="req-active"></div>
+      <div class="sec-ttl">Завершені</div>
+      <div class="card" id="req-done"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ НОВА ЗАЯВКА ═══ -->
+    <section class="screen" id="s-req-new">
+      <div class="sec-ttl">Категорія</div>
+      <div class="grid4" id="req-cats"></div>
+
+      <div class="sec-ttl">Опис проблеми</div>
+      <div class="card"><label class="f"><textarea rows="4" id="req-text" oninput="aiSuggest()" placeholder="Наприклад: у ванній тече змішувач, вода не перекривається до кінця"></textarea></label></div>
+      <div id="ai-cat" class="hide" style="margin-top:10px"></div>
+
+      <div class="sec-ttl">Деталі</div>
+      <div class="card">
+        <label class="f"><span class="lb">Місце</span>
+          <select><option>Моя квартира</option><option>Хол / ліфтовий хол</option><option>Ліфт</option><option>Подвір'я</option><option>Паркінг</option><option>Дитячий майданчик</option></select>
+        </label>
+        <label class="f"><span class="lb">Терміновість</span>
+          <select id="req-urg"><option>Звичайна — 1–3 робочі дні</option><option>Термінова — сьогодні</option><option>Аварія — негайно</option></select>
+        </label>
+        <div class="row" onclick="toast('Прототип: додати фото або відео')"><span class="ic">📎</span><div class="body"><div class="nm">Додати фото / відео</div><div class="tiny muted">до 5 файлів</div></div><span class="chev">›</span></div>
+        <label class="f"><span class="lb">Зручний час візиту майстра</span>
+          <select><option>Будь-який робочий час</option><option>Ранок 09:00–12:00</option><option>День 12:00–16:00</option><option>Вечір 16:00–19:00</option><option>Тільки субота</option></select>
+        </label>
+      </div>
+
+      <div style="margin-top:14px"><button class="btn main-act" onclick="submitReq()">Надіслати заявку</button></div>
+      <div class="tiny muted" style="text-align:center; margin:10px 4px 0">Аварійні заявки диспетчер бачить одразу. У неробочий час — аварійна лінія 0 800 30 12 12.</div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ДЕТАЛЬ ЗАЯВКИ ═══ -->
+    <section class="screen" id="s-req-one">
+      <div class="card pad">
+        <div class="spread"><div style="font-weight:600; font-size:17px" id="ro-ttl"></div><span id="ro-chip"></span></div>
+        <div class="small muted" style="margin-top:4px" id="ro-meta"></div>
+        <div style="margin-top:12px" id="ro-text"></div>
+      </div>
+      <div class="card" id="ro-master" style="display:none"></div>
+      <div class="sec-ttl">Фото до заявки</div>
+      <div class="card"><div class="phgrid"><div class="ph" onclick="toast('Прототип: відкрити фото')">🚿</div><div class="ph" onclick="toast('Прототип: відкрити фото')">💧</div><div class="ph" onclick="toast('Прототип: відкрити фото')">🔧</div></div></div>
+      <div class="sec-ttl">Хід виконання</div>
+      <div class="card pad"><ul class="tl" id="ro-tl"></ul></div>
+      <div class="card" style="margin-top:12px" id="ro-actions"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ НОВИНИ ═══ -->
+    <section class="screen" id="s-news">
+      <div id="news-list"></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЧАТ ═══ -->
+    <section class="screen flat-pad" id="s-chat">
+      <div class="chatwrap">
+        <div class="msgs" id="msgs"></div>
+        <div class="chips" id="chat-chips"></div>
+        <div class="composer">
+          <input id="chat-in" placeholder="Запитайте що завгодно…" onkeydown="if(event.key==='Enter')sendMsg()">
+          <button onclick="sendMsg()">➤</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ПЕРЕПУСТКИ ═══ -->
+    <section class="screen" id="s-pass">
+      <button class="btn" onclick="go('pass-new')">+ Замовити перепустку</button>
+      <div class="sec-ttl">Діючі</div>
+      <div class="card" id="pass-active"></div>
+      <div class="sec-ttl">Історія</div>
+      <div class="card">
+        <div class="row"><span class="ic">📦</span><div class="body"><div class="nm">Нова Пошта, кур'єр</div><div class="tiny muted">14 серпня, 13:40 · використано</div></div></div>
+        <div class="row"><span class="ic">🚕</span><div class="body"><div class="nm">Таксі AA 7781 KX</div><div class="tiny muted">11 серпня, 08:05 · використано</div></div></div>
+        <div class="row"><span class="ic">👤</span><div class="body"><div class="nm">Гість — Андрій С.</div><div class="tiny muted">09 серпня · термін вичерпано</div></div></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ НОВА ПЕРЕПУСТКА ═══ -->
+    <section class="screen" id="s-pass-new">
+      <div class="sec-ttl">Тип</div>
+      <div class="grid4" id="pass-types"></div>
+      <div class="sec-ttl">Дані</div>
+      <div class="card">
+        <label class="f"><span class="lb">Ім'я гостя / служби</span><input placeholder="Марина Ковальчук"></label>
+        <label class="f"><span class="lb">Номер авто (якщо на машині)</span><input placeholder="AA 1234 BB"></label>
+        <label class="f"><span class="lb">Діє до</span><select><option>Сьогодні до 23:59</option><option>Завтра до 23:59</option><option>3 дні</option><option>Тиждень</option></select></label>
+        <label class="f"><span class="lb">Коментар охороні</span><input placeholder="Пропустити на гостьовий паркінг"></label>
+      </div>
+      <div style="margin-top:14px"><button class="btn main-act" onclick="go('pass-qr')">Створити перепустку</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ QR ПЕРЕПУСТКИ ═══ -->
+    <section class="screen" id="s-pass-qr">
+      <div class="card pad" style="text-align:center">
+        <div style="font-weight:600; font-size:17px">Перепустка для гостя</div>
+        <div class="small muted" style="margin:4px 0 16px">Марина Ковальчук · AA 1234 BB</div>
+        <div class="qr" id="qr"></div>
+        <div style="font-size:30px; font-weight:700; letter-spacing:5px; margin-top:16px">4821</div>
+        <div class="small muted">Код для охоронця, якщо не сканує QR</div>
+        <div class="chip b" style="margin-top:12px">Діє до сьогодні 23:59</div>
+      </div>
+      <div style="margin-top:12px"><button class="btn ghost" onclick="toast('Прототип: поділитися в Telegram')">Надіслати гостю</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ГОЛОСУВАННЯ ═══ -->
+    <section class="screen" id="s-vote">
+      <div class="sec-ttl">Активне опитування</div>
+      <div class="card">
+        <div class="pad" style="border-bottom:1px solid var(--sep)">
+          <div style="font-weight:600">Встановити шлагбаум на в'їзді?</div>
+          <div class="small muted" style="margin-top:4px">Орієнтовна вартість 148 000 ₴ — це +64 ₴/міс з квартири протягом року. Голосування до 25 серпня.</div>
+        </div>
+        <div id="vote-opts"></div>
+        <div class="pad">
+          <button class="btn" id="vote-btn" onclick="castVote()" disabled>Проголосувати</button>
+          <div class="tiny muted" style="text-align:center; margin-top:9px">Проголосувало 149 з 384 квартир · один голос на квартиру</div>
+        </div>
+      </div>
+
+      <div class="sec-ttl">Завершені</div>
+      <div class="card pad">
+        <div style="font-weight:600">Підвищення тарифу на утримання до 12,50 ₴/м²</div>
+        <div class="small muted" style="margin:3px 0 12px">Завершено 30 червня · 178 голосів</div>
+        <div id="vote-res"></div>
+        <div class="tiny muted" style="margin-top:11px">Рішення ухвалено. Новий тариф діє з 1 серпня 2026.</div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЩЕ ═══ -->
+    <section class="screen" id="s-more">
+      <div class="card">
+        <div class="row" onclick="go('flat')"><span class="ic">🏠</span><div class="body"><div class="nm">Моя квартира</div><div class="tiny muted">Секція 2, кв. 284 · 68,4 м²</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('pass')"><span class="ic">🎫</span><div class="body"><div class="nm">Перепустки</div><div class="tiny muted">1 діюча</div></div><span class="chev">›</span></div>
+        <div class="row owner-only" onclick="go('vote')"><span class="ic">🗳️</span><div class="body"><div class="nm">Голосування</div><div class="tiny muted">1 активне опитування</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('meters')"><span class="ic">💧</span><div class="body"><div class="nm">Показники лічильників</div></div><span class="chev">›</span></div>
+        <div class="row owner-only" onclick="go('access')"><span class="ic">🔑</span><div class="body"><div class="nm">Доступ до квартири</div><div class="tiny muted">Орендар і член сім'ї — 2 особи</div></div><span class="chev">›</span></div>
+      </div>
+
+      <div class="sec-ttl">Секція та ЖК</div>
+      <div class="card">
+        <div class="row owner-only" onclick="go('finance')"><span class="ic">📊</span><div class="body"><div class="nm">Куди йдуть гроші</div><div class="tiny muted">Звіт по секції за липень</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('contacts')"><span class="ic">☎️</span><div class="body"><div class="nm">Корисні контакти</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('docs')"><span class="ic">📁</span><div class="body"><div class="nm">Документи</div><div class="tiny muted">Статут, протоколи, тарифи</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="go('booking')"><span class="ic">📅</span><div class="body"><div class="nm">Бронювання</div><div class="tiny muted">Вантажний ліфт, гостьове місце</div></div><span class="chev">›</span></div>
+      </div>
+
+      <div class="sec-ttl">Налаштування</div>
+      <div class="card">
+        <div class="row" onclick="go('notif')"><span class="ic">🔔</span><div class="body"><div class="nm">Сповіщення</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="toast('Прототип: прив\'язка ще однієї квартири за кодом з квитанції')"><span class="ic">➕</span><div class="body"><div class="nm">Додати об'єкт</div><div class="tiny muted">Ще квартира, комора, машиномісце</div></div><span class="chev">›</span></div>
+        <div class="row owner-only" onclick="setRole('tenant')"><span class="ic">👤</span><div class="body"><div class="nm">Подивитись очима орендаря</div><div class="tiny muted">Демо: що бачить той, кому ви дали доступ</div></div><span class="chev">›</span></div>
+      </div>
+
+      <div class="sec-ttl">Демо-режими прототипу</div>
+      <div class="card">
+        <div class="row" onclick="go('onb1')"><span class="ic">🚪</span><div class="body"><div class="nm">Перший вхід і прив'язка квартири</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="setEmpty(!isEmpty)"><span class="ic">🫙</span><div class="body"><div class="nm" id="empty-lb">Новий мешканець — порожні екрани</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="setRole('master')"><span class="ic">👷</span><div class="body"><div class="nm">Кабінет майстра</div><div class="tiny muted">Що бачить сантехнік у полі</div></div><span class="chev">›</span></div>
+      </div>
+      <div class="tiny muted" style="text-align:center; margin:18px 0 8px">ЖК 4U · прототип v0.1</div>
+    </section>
+
+    <!-- ═══ МОЯ КВАРТИРА ═══ -->
+    <section class="screen" id="s-flat">
+      <div class="card">
+        <div class="row"><div class="body"><div class="tiny muted">Адреса</div><div class="nm">вул. Ак. Булаховського, 2, секція 2, кв. 284</div></div></div>
+        <div class="row"><div class="body"><div class="tiny muted">Площа</div><div class="nm">68,4 м²</div></div></div>
+        <div class="row"><div class="body"><div class="tiny muted">Особовий рахунок</div><div class="nm">4U-0284</div></div></div>
+        <div class="row"><div class="body"><div class="tiny muted">Мешканців зареєстровано</div><div class="nm">3</div></div></div>
+        <div class="row"><div class="body"><div class="tiny muted">Статус</div><div class="nm" id="flat-role">Власник</div></div></div>
+        <div class="row owner-only" onclick="go('access')"><div class="body"><div class="tiny muted">Доступ надано</div><div class="nm">2 особи — орендар і член сім'ї</div></div><span class="chev">›</span></div>
+      </div>
+      <div class="sec-ttl">Автомобілі</div>
+      <div class="card">
+        <div class="row"><span class="ic">🚗</span><div class="body"><div class="nm">AA 4412 IK</div><div class="tiny muted">Skoda Octavia · місце P-31</div></div></div>
+        <div class="row" onclick="toast('Прототип: додати авто')"><span class="ic">➕</span><div class="body"><div class="nm">Додати авто</div></div><span class="chev">›</span></div>
+      </div>
+      <div class="sec-ttl">Інші об'єкти</div>
+      <div class="card">
+        <div class="row" onclick="toast('Прототип: перемикання між об\'єктами')"><span class="ic">📦</span><div class="body"><div class="nm">Комора К-12</div><div class="tiny muted">4,1 м² · окремий рахунок</div></div><span class="chev">›</span></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ОНБОРДИНГ 1 ═══ -->
+    <section class="screen" id="s-onb1">
+      <div class="onb">
+        <div class="big">🏠</div>
+        <h2>Вітаємо у ЖК 4U</h2>
+        <p>Тут ви бачите рахунки, подаєте покази, викликаєте майстра й замовляєте перепустки для гостей — без дзвінків у ЖЕК.</p>
+      </div>
+      <div class="card" style="margin-top:22px">
+        <div class="row" style="cursor:default"><span class="ic">💳</span><div class="body"><div class="nm">Рахунки і квитанції</div><div class="tiny muted">Деталізація по кожній послузі</div></div></div>
+        <div class="row" style="cursor:default"><span class="ic">🔧</span><div class="body"><div class="nm">Заявки на поломку</div><div class="tiny muted">З фото, зі статусом і майстром</div></div></div>
+        <div class="row" style="cursor:default"><span class="ic">💧</span><div class="body"><div class="nm">Покази з фото лічильника</div><div class="tiny muted">Цифри розпізнаються автоматично</div></div></div>
+      </div>
+      <div style="margin-top:18px"><button class="btn main-act" onclick="go('onb2')">Знайти мою квартиру</button></div>
+      <div class="tiny muted" style="text-align:center; margin:12px 4px 0">Продовжуючи, ви погоджуєтесь на обробку даних керуючою компанією 4U.</div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ОНБОРДИНГ 2 ═══ -->
+    <section class="screen" id="s-onb2">
+      <div class="sec-ttl">Спосіб 1 — код із квитанції</div>
+      <div class="card"><label class="f"><span class="lb">Код прив'язки (8 символів, у правому куті квитанції)</span><input id="onb-code" placeholder="4U-284-A7" oninput="onbCheck()"></label></div>
+      <div id="onb-hint" class="hide" style="margin-top:10px"></div>
+
+      <div class="sec-ttl">Спосіб 2 — вручну, з підтвердженням</div>
+      <div class="card">
+        <label class="f"><span class="lb">Секція</span><select><option>Секція 1</option><option selected>Секція 2</option></select></label>
+        <label class="f"><span class="lb">Квартира</span><input type="number" placeholder="284"></label>
+        <label class="f"><span class="lb">Телефон, вказаний у договорі</span><input placeholder="+380 96 000-00-00"></label>
+      </div>
+      <div style="margin-top:14px"><button class="btn ghost" onclick="go('onb3')">Надіслати на підтвердження</button></div>
+      <div class="ai" style="margin-top:14px"><span class="e">ℹ️</span><div class="small">Диспетчер звіряє заявку з реєстром власників — зазвичай протягом робочого дня. Код із квитанції спрацьовує миттєво.</div></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ОНБОРДИНГ 3 ═══ -->
+    <section class="screen" id="s-onb3">
+      <div class="onb">
+        <div class="big">⏳</div>
+        <h2>Заявку надіслано</h2>
+        <p>Секція 2, кв. 284 · +380 96 ***-14-08<br>Диспетчер підтвердить доступ протягом робочого дня — надійде сповіщення в Telegram.</p>
+      </div>
+      <div class="card" style="margin-top:20px">
+        <div class="row" style="cursor:default"><span class="ic">✅</span><div class="body"><div class="nm">Уже доступно без підтвердження</div><div class="tiny muted">Новини ЖК та аварійні сповіщення</div></div></div>
+        <div class="row" style="cursor:default"><span class="ic">🔒</span><div class="body"><div class="nm">Відкриється після перевірки</div><div class="tiny muted">Рахунки, покази, заявки, перепустки</div></div></div>
+      </div>
+      <div style="margin-top:16px"><button class="btn" onclick="go('news')">Поки почитати новини</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ КВИТАНЦІЯ ═══ -->
+    <section class="screen" id="s-receipt">
+      <div class="card pad">
+        <div class="receipt" id="receipt-body"></div>
+      </div>
+      <div class="card pad" style="margin-top:12px; text-align:center">
+        <div class="small muted" style="margin-bottom:12px">Платіжний QR — сканується застосунком банку</div>
+        <div class="qr" id="qr2"></div>
+      </div>
+      <div style="margin-top:12px"><button class="btn ghost" onclick="toast('Прототип: зберегти PDF або надіслати у Telegram')">Зберегти PDF</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ НОВИНА ═══ -->
+    <section class="screen" id="s-news-one">
+      <div class="card">
+        <div class="ph" style="aspect-ratio:16/9; border-radius:var(--r) var(--r) 0 0" id="news-img">🖼️</div>
+        <div class="pad">
+          <div id="news-one-chip"></div>
+          <div style="font-weight:700; font-size:19px; margin-top:8px" id="news-one-ttl"></div>
+          <div class="tiny muted" style="margin:5px 0 12px" id="news-one-dt"></div>
+          <div id="news-one-txt" style="line-height:1.6"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="row" onclick="toast('Прототип: додати в календар')"><span class="ic">📅</span><div class="body"><div class="nm">Додати в календар</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="toast('Прототип: поділитися з сусідом')"><span class="ic">↗️</span><div class="body"><div class="nm">Поділитися</div></div><span class="chev">›</span></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ДОКУМЕНТИ ═══ -->
+    <section class="screen" id="s-docs">
+      <div class="sec-ttl">Договори й тарифи</div>
+      <div class="card" id="docs1"></div>
+      <div class="sec-ttl">Протоколи зборів</div>
+      <div class="card" id="docs2"></div>
+      <div class="sec-ttl">Мої документи</div>
+      <div class="card">
+        <div class="row" onclick="toast('Прототип: замовити довідку — формується автоматично')"><span class="ic">📝</span><div class="body"><div class="nm">Замовити довідку</div><div class="tiny muted">Про відсутність боргу, про склад сім'ї</div></div><span class="chev">›</span></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ БРОНЮВАННЯ ═══ -->
+    <section class="screen" id="s-booking">
+      <div class="sec-ttl">Що бронюємо</div>
+      <div class="grid2" id="book-types"></div>
+      <div class="sec-ttl">Понеділок, 18 серпня</div>
+      <div class="card pad" id="book-slots"></div>
+      <div class="sec-ttl">Мої броні</div>
+      <div class="card">
+        <div class="row" style="cursor:default"><span class="ic">🛗</span><div class="body"><div class="nm">Вантажний ліфт</div><div class="tiny muted">20 серпня, 10:00–12:00 · занесення меблів</div></div><span class="chip g">Активна</span></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn main-act" onclick="toast('Прототип: слот заброньовано, охорона отримала повідомлення')">Забронювати</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ СПОВІЩЕННЯ ═══ -->
+    <section class="screen" id="s-notif">
+      <div class="sec-ttl">Так виглядає сповіщення</div>
+      <div class="pushdemo"><b>ЖК 4U</b>Майстер Олег буде у вас через 30 хвилин — заявка №482, тече змішувач.</div>
+      <div class="sec-ttl">Що надсилати</div>
+      <div class="card" id="notif-list"></div>
+      <div class="ai" style="margin-top:14px"><span class="e">⚠️</span><div class="small">Аварійні сповіщення — відключення води, світла, ліфта — вимкнути не можна. Це вимога безпеки.</div></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ОЦІНКА ═══ -->
+    <section class="screen" id="s-rate">
+      <div class="card pad" style="text-align:center">
+        <div style="font-weight:600; font-size:17px">Як спрацював майстер?</div>
+        <div class="small muted" style="margin:5px 0 4px">Заявка №479 · Не працює домофон<br>Мороз Сергій · закрито 13 серпня</div>
+        <div class="stars" id="stars"></div>
+        <div class="tiny muted" id="rate-lb">Торкніться зірки</div>
+      </div>
+      <div class="card" style="margin-top:12px"><label class="f"><span class="lb">Коментар (не обов'язково)</span><textarea rows="3" placeholder="Що сподобалось або що варто виправити"></textarea></label></div>
+      <div style="margin-top:14px"><button class="btn main-act" onclick="toast('Прототип: оцінку надіслано, вона видно керуючому')">Надіслати оцінку</button></div>
+      <div class="tiny muted" style="text-align:center; margin:10px 4px 0">Оцінки бачить керуючий і враховує їх у роботі з підрядниками. Майстру видно лише середній бал.</div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ КАБІНЕТ МАЙСТРА ═══ -->
+    <section class="screen" id="s-master">
+      <div class="card pad">
+        <div class="spread"><div><div class="tiny muted">Сьогодні, 18 серпня</div><div style="font-size:19px; font-weight:700; margin-top:2px">3 заявки · 1 прострочена</div></div><span class="chip r">SLA</span></div>
+      </div>
+      <div class="sec-ttl">Маршрут на сьогодні</div>
+      <div class="card" id="master-list"></div>
+      <div class="sec-ttl">Закриті за тиждень</div>
+      <div class="card">
+        <div class="row" style="cursor:default"><div class="body"><div class="nm">6 заявок · середній час 14 год</div><div class="tiny muted">Оцінка мешканців 4,8 ⭐</div></div></div>
+      </div>
+      <div style="margin-top:14px"><button class="btn ghost" onclick="setRole('owner')">Вийти з режиму майстра</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ЗАЯВКА У МАЙСТРА ═══ -->
+    <section class="screen" id="s-master-one">
+      <div class="card pad">
+        <div class="spread"><div style="font-weight:600; font-size:17px">🚿 Тече змішувач у ванній</div><span class="chip b">В роботі</span></div>
+        <div class="small muted" style="margin-top:4px">№482 · секція 2, кв. 284 · створено 16 серпня 09:12</div>
+        <div style="margin-top:11px">У ванній тече змішувач, вода не перекривається до кінця. Підставили відро.</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <div class="row" onclick="toast('Прототип: дзвінок мешканцю')"><span class="ic">📞</span><div class="body"><div class="nm">Петренко Андрій</div><div class="tiny muted">Зручний час: день 12:00–16:00</div></div><span class="chev">›</span></div>
+        <div class="row" onclick="toast('Прототип: маршрут у картах')"><span class="ic">📍</span><div class="body"><div class="nm">Булаховського 2, секція 2, 14 поверх</div><div class="tiny muted">Код підʼїзду 4821</div></div><span class="chev">›</span></div>
+      </div>
+      <div class="sec-ttl">Фото від мешканця</div>
+      <div class="card"><div class="phgrid"><div class="ph">🚿</div><div class="ph">💧</div><div class="ph">🔧</div></div></div>
+      <div class="sec-ttl">Фото після роботи — обов'язково</div>
+      <div class="card"><div class="phgrid"><div class="ph" onclick="toast('Прототип: камера')">📷</div><div class="ph" style="opacity:.4">＋</div><div class="ph" style="opacity:.4">＋</div></div></div>
+      <div class="card" style="margin-top:12px"><label class="f"><span class="lb">Що зроблено</span><textarea rows="3" placeholder="Замінено картридж змішувача, перевірено підводку"></textarea></label>
+      <label class="f"><span class="lb">Використані матеріали</span><input placeholder="Картридж 35 мм — 1 шт"></label></div>
+      <div style="margin-top:14px"><button class="btn main-act" onclick="toast('Прототип: заявку закрито, мешканцю надійшло сповіщення')">Закрити заявку</button></div>
+      <div style="margin-top:8px"><button class="btn ghost" onclick="toast('Прототип: причина — немає доступу / потрібна деталь')">Не вдалося виконати</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ДОСТУП ДО КВАРТИРИ ═══ -->
+    <section class="screen" id="s-access">
+      <div class="sec-ttl">Хто має доступ</div>
+      <div class="card" id="access-list"></div>
+      <div style="margin-top:14px"><button class="btn" onclick="go('access-new')">+ Надати доступ</button></div>
+      <div class="ai" style="margin-top:14px"><span class="e">💡</span><div class="small">Доступ орендаря гасне сам у дату закінчення договору — нічого не треба пам'ятати. Рахунки й голосування лишаються за вами, якщо не відкриєте їх окремо.</div></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ НАДАТИ ДОСТУП ═══ -->
+    <section class="screen" id="s-access-new">
+      <div class="sec-ttl">Кому</div>
+      <div class="grid2" id="access-types"></div>
+
+      <div class="sec-ttl">Дані</div>
+      <div class="card">
+        <label class="f"><span class="lb">Ім'я та прізвище</span><input placeholder="Дмитро Коваленко"></label>
+        <label class="f"><span class="lb">Телефон (для впізнання в Telegram)</span><input placeholder="+380 67 000-00-00"></label>
+        <label class="f"><span class="lb">Доступ діє до</span><input value="31.12.2026"></label>
+      </div>
+
+      <div class="sec-ttl">Що дозволяємо</div>
+      <div class="card" id="access-rights"></div>
+
+      <div style="margin-top:14px"><button class="btn main-act" onclick="go('access-code')">Створити запрошення</button></div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ КОД ЗАПРОШЕННЯ ═══ -->
+    <section class="screen" id="s-access-code">
+      <div class="card pad" style="text-align:center">
+        <div style="font-size:34px">🔑</div>
+        <div style="font-weight:600; font-size:17px; margin-top:6px">Запрошення для орендаря</div>
+        <div class="small muted" style="margin:4px 0 16px">Дмитро Коваленко · доступ до 31.12.2026</div>
+        <div style="font-size:28px; font-weight:700; letter-spacing:4px">4U-284-KDM</div>
+        <div class="small muted" style="margin-top:6px">Код діє 48 годин</div>
+      </div>
+      <div style="margin-top:12px"><button class="btn" onclick="toast('Прототип: поділитися посиланням у Telegram')">Надіслати в Telegram</button></div>
+      <div class="card" style="margin-top:12px">
+        <div class="row" style="cursor:default"><span class="ic">✅</span><div class="body"><div class="nm">Що отримає орендар</div><div class="tiny muted">Заявки, перепустки, покази, новини, чат</div></div></div>
+        <div class="row" style="cursor:default"><span class="ic">🚫</span><div class="body"><div class="nm">Чого не побачить</div><div class="tiny muted">Рахунки, борги, голосування, доступ інших</div></div></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ ФІНАНСИ БУДИНКУ ═══ -->
+    <section class="screen" id="s-finance">
+      <div class="card pad">
+        <div class="spread"><div><div class="tiny muted">Зібрано за липень</div><div style="font-size:22px; font-weight:700">412 300 ₴</div></div>
+        <div style="text-align:right"><div class="tiny muted">Витрачено</div><div style="font-size:22px; font-weight:700">389 740 ₴</div></div></div>
+        <div class="small muted" style="margin-top:10px">Рівень оплати 87% · на ремонтному фонді 168 400 ₴</div>
+      </div>
+      <div class="sec-ttl">Структура витрат</div>
+      <div class="card pad" id="fin-bars"></div>
+      <div class="sec-ttl">Найбільші роботи місяця</div>
+      <div class="card">
+        <div class="row"><div class="body"><div class="nm">Ремонт ліфта №2, секція 1</div><div class="tiny muted">ТОВ «Ліфтсервіс» · акт від 14.07</div></div><b>68 200 ₴</b></div>
+        <div class="row"><div class="body"><div class="nm">Заміна насоса ГВП</div><div class="tiny muted">акт від 22.07</div></div><b>41 500 ₴</b></div>
+        <div class="row"><div class="body"><div class="nm">Озеленення алеї</div><div class="tiny muted">акт від 28.07</div></div><b>19 800 ₴</b></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+    <!-- ═══ КОНТАКТИ ═══ -->
+    <section class="screen" id="s-contacts">
+      <div class="card">
+        <div class="row"><span class="ic">🛎️</span><div class="body"><div class="nm">Диспетчерська ЖЕК</div><div class="tiny muted">Пн–Пт 08:00–19:00, Сб 09:00–15:00</div></div><b class="small" style="color:var(--accent)">044 221-30-30</b></div>
+        <div class="row"><span class="ic">🚨</span><div class="body"><div class="nm">Аварійна служба</div><div class="tiny muted">Цілодобово</div></div><b class="small" style="color:var(--accent)">0 800 30 12 12</b></div>
+        <div class="row"><span class="ic">👮</span><div class="body"><div class="nm">Охорона / КПП</div><div class="tiny muted">Цілодобово</div></div><b class="small" style="color:var(--accent)">067 112-45-45</b></div>
+        <div class="row"><span class="ic">👔</span><div class="body"><div class="nm">Керуючий будинком</div><div class="tiny muted">Петренко І.М. · офіс секції 1, прим. 3</div></div><b class="small" style="color:var(--accent)">Написати</b></div>
+        <div class="row"><span class="ic">🚔</span><div class="body"><div class="nm">Дільничний офіцер</div><div class="tiny muted">Сергієнко О.В.</div></div><b class="small" style="color:var(--accent)">063 887-11-02</b></div>
+      </div>
+      <div style="height:8px"></div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="home" class="on" onclick="go('home')"><span class="e">🏠</span><span class="t">Головна</span></button>
+    <button data-tab="bills" onclick="go('bills')"><span class="e">💳</span><span class="t">Рахунки</span></button>
+    <button data-tab="req" onclick="go('req')"><span class="e">🔧</span><span class="t">Заявки</span><span class="badge">1</span></button>
+    <button data-tab="news" onclick="go('news')"><span class="e">📰</span><span class="t">Новини</span></button>
+    <button data-tab="more" onclick="go('more')"><span class="e">☰</span><span class="t">Ще</span></button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ Telegram WebApp ═══════════ */
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+const inTG = !!(tg && tg.initData && tg.initData.length);
+if (tg) {
+  try { tg.ready(); tg.expand(); } catch(e) {}
+  try { tg.setHeaderColor('secondary_bg_color'); } catch(e) {}
+}
+if (inTG) document.body.classList.add('in-tg');
+function haptic(kind){
+  if(!tg || !tg.HapticFeedback) return;
+  try{ kind==='ok' ? tg.HapticFeedback.notificationOccurred('success')
+                   : kind==='err' ? tg.HapticFeedback.notificationOccurred('error')
+                   : tg.HapticFeedback.impactOccurred(kind||'light'); }catch(e){}
+}
+
+/* ═══════════ API ═══════════ */
+let FLAT_ID = null;
+async function api(path, body){
+  if(DEMO) return demoApi(path, body);
+  const headers = { 'Content-Type':'application/json' };
+  if (inTG) headers['X-Telegram-InitData'] = tg.initData;
+  if (FLAT_ID) headers['X-Flat-Id'] = FLAT_ID;
+  const res = await fetch('/api' + path, {
+    method: body ? 'POST' : 'GET', headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(()=>({ error:'Сервер повернув не JSON' }));
+  if (!res.ok) throw new Error(data.error || ('Помилка ' + res.status));
+  return data;
+}
+
+/* ── Демо-режим: якщо бекенду немає, працюємо на зліпку даних ── */
+let DEMO = false;
+let demoSeq = 900;
+async function demoApi(path, body){
+  await new Promise(r=>setTimeout(r, 180));           // імітація мережі
+  const now = new Date().toISOString();
+  if(path === '/bootstrap') return DEMO_DATA;
+  if(path.startsWith('/bind')) {
+    if(String(body.code).toUpperCase() !== '4U-284-A7') throw new Error('Такого коду немає або він уже використаний');
+    return path.includes('check') ? { preview:{ number:284, section:'Секція 2', area:68.4, owner:'Петренко Андрій Сергійович' } } : { ok:true };
+  }
+  if(path === '/meters'){
+    const saved = [];
+    for(const [k,v] of Object.entries(body.values||{})){
+      const prev = DEMO_DATA.prevMeters.find(m=>m.kind===k);
+      const pv = prev ? +prev.value : null;
+      if(pv!=null && +v < pv) throw new Error(`Показ менший за попередній (${pv})`);
+      const delta = pv!=null ? +v-pv : null;
+      const status = delta!=null && delta > (k==='elec'?600:20) ? 'warn' : 'accepted';
+      DEMO_DATA.meters.push({ id:++demoSeq, kind:k, value:+v, prev_value:pv, status,
+        source: body.source||'manual', period: DEMO_DATA.period, created_at: now });
+      saved.push({ kind:k, value:+v, delta, status });
+    }
+    if(!saved.length) throw new Error('Не передано жодного показу');
+    return { ok:true, saved };
+  }
+  if(path === '/meters/scan')
+    return { ok:false, reason:'demo', message:'У публічному демо камера вимкнена. У робочій версії фото лічильника розпізнається автоматично.' };
+  if(path === '/requests'){
+    const rules = CAT_RULES.find(r=>r[0].test(body.description));
+    const cat = body.category || (rules? rules[2] : 'Інше');
+    const urg = body.urgency || (URGENT.test(body.description) ? 'emergency' : 'normal');
+    const id = ++demoSeq;
+    DEMO_DATA.requests.unshift({ id, category:cat, urgency:urg, status:'new',
+      title: body.description.trim().split(/[.\n]/)[0].slice(0,120), description: body.description,
+      place: body.place, created_at: now, master_name:null, sla_hours: urg==='emergency'?4:48,
+      events:[{ title:'Заявку прийнято', note:'З застосунку', created_at: now }] });
+    return { ok:true, id, category:cat, urgency:urg };
+  }
+  if(/^\/requests\/\d+\/cancel$/.test(path)){
+    const id = +path.split('/')[2];
+    const r = DEMO_DATA.requests.find(x=>x.id===id);
+    if(r){ r.status='cancelled'; r.events.push({ title:'Скасовано мешканцем', created_at: now }); }
+    return { ok:true };
+  }
+  if(/^\/requests\/\d+\/rate$/.test(path)){
+    const r = DEMO_DATA.requests.find(x=>x.id===+path.split('/')[2]);
+    if(r) r.rating = body.rating;
+    return { ok:true };
+  }
+  if(path === '/chat'){
+    DEMO_DATA.messages.push({ author:'user', text: body.text, created_at: now });
+    const hit = DEMO_FAQ.find(f=>f[0].test(body.text));
+    const human = /поклик|людин|оператор|диспетчер/i.test(body.text);
+    const reply = human ? 'Передаю диспетчеру. Ольга підключиться протягом 10 хвилин.'
+      : hit ? hit[1] : 'Тут я не впевнений, а вгадувати не буду — передаю диспетчеру.';
+    DEMO_DATA.messages.push({ author:'bot', text: reply, created_at: now });
+    return { ok:true, reply, escalated: human || !hit };
+  }
+  if(path === '/passes'){
+    const code = String(Math.floor(1000+Math.random()*9000));
+    const until = new Date(Date.now()+(+body.hours||12)*3600e3).toISOString();
+    const id = ++demoSeq;
+    DEMO_DATA.passes.unshift({ id, type: body.type||'guest', person_name: body.name, car: body.car,
+      code, valid_until: until, status:'active', created_at: now });
+    return { ok:true, id, code, valid_until: until };
+  }
+  if(/^\/votes\/\d+$/.test(path)){
+    if(DEMO_DATA.vote){ if(!DEMO_DATA.vote.myOption) DEMO_DATA.vote.voted++; DEMO_DATA.vote.myOption = body.option_id; }
+    return { ok:true };
+  }
+  if(path === '/access'){
+    const code = 'ЖК' + Math.random().toString(36).slice(2,7).toUpperCase();
+    DEMO_DATA.access.push({ id:++demoSeq, role: body.role||'tenant', person_name: body.name,
+      valid_until: body.valid_until, rights: body.rights });
+    return { ok:true, invite_code: code };
+  }
+  if(/^\/access\/\d+\/revoke$/.test(path)){
+    const id = +path.split('/')[2];
+    DEMO_DATA.access = DEMO_DATA.access.filter(a=>a.id!==id);
+    return { ok:true };
+  }
+  if(path.startsWith('/bookings/')) return DEMO_DATA.bookings.filter(b=>path.includes(b.resource));
+  if(path === '/bookings'){
+    DEMO_DATA.bookings.push({ id:++demoSeq, resource: body.resource, slot_date: body.date,
+      slot_from: body.from, slot_to: body.to, note: body.note });
+    return { ok:true };
+  }
+  return { ok:true };
+}
+let DEMO_DATA = null;
+const DEMO_FAQ = [
+  [/вод[аиу]|відключ|засувк/i,'19 серпня з 09:00 до 17:00 у секціях 1 і 2 не буде холодної води — планова заміна засувки на вводі.'],
+  [/реквізит|оплат|сплат|рахун|платит|борг|квитанц/i,'Квитанція і платіжний QR — у розділі «Рахунки», там же деталізація по кожній послузі.'],
+  [/показ|лічильник/i,'Покази подаються з 20 по 25 число в розділі «Показники». Найшвидше — сфотографувати лічильник.'],
+  [/графік|працю|години|офіс|диспетчер/i,'Диспетчерська: Пн–Пт 08:00–19:00, Сб 09:00–15:00. Аварійна лінія 0 800 30 12 12 — цілодобово.'],
+  [/перепустк|гост|достав|кур.єр|таксі/i,'Перепустку робіть у розділі «Перепустки» — гість отримає QR і числовий код для охорони.'],
+  [/сміт|вивез/i,'Сміттєвоз приїздить у понеділок, середу та п’ятницю о 07:00.'],
+];
+
+let D = {};            // усе, що прийшло з /api/bootstrap
+let role = 'owner';
+let humanCalled = false;
+
+/* ═══════════ Довідники ═══════════ */
+const TITLES = {
+  home:['ЖК 4U',''], bills:['Рахунки',''], meters:['Показники лічильників',''],
+  req:['Заявки',''], 'req-new':['Нова заявка',''], 'req-one':['Заявка',''],
+  news:['Новини та оголошення',''], chat:['Асистент 4U','відповідає одразу · цілодобово'],
+  pass:['Перепустки',''], 'pass-new':['Нова перепустка',''], 'pass-qr':['Перепустка створена',''],
+  vote:['Голосування',''], more:['Ще',''], flat:['Моя квартира',''],
+  finance:['Куди йдуть гроші',''], contacts:['Корисні контакти',''],
+  onb1:['',''], onb2:['Знайти квартиру',''], onb3:['Заявку надіслано',''],
+  receipt:['Квитанція',''], 'news-one':['Новина',''], docs:['Документи',''],
+  booking:['Бронювання',''], notif:['Сповіщення',''], rate:['Оцінити роботу',''],
+  master:['Мої заявки',''], 'master-one':['Заявка',''],
+  access:['Доступ до квартири',''], 'access-new':['Надати доступ',''], 'access-code':['Запрошення створено',''],
+};
+const ROOTS = ['home','bills','req','news','more'];
+const TABS = { home:'home', bills:'bills', req:'req', 'req-new':'req', 'req-one':'req', rate:'req',
+  news:'news', 'news-one':'news', receipt:'bills', more:'more', flat:'more', finance:'more',
+  contacts:'more', pass:'more', 'pass-new':'more', 'pass-qr':'more', vote:'more', meters:'more',
+  docs:'more', booking:'more', notif:'more', access:'more', 'access-new':'more', 'access-code':'more',
+  chat:null, onb1:null, onb2:null, onb3:null, master:null, 'master-one':null };
+
+const METER_META = { cold:['Холодна вода','м³','💧'], hot:['Гаряча вода','м³','🔥'],
+  elec:['Електроенергія','кВт·год','💡'], heat:['Теплова енергія','Гкал','🌡️'] };
+const REQ_CATS = [['🚿','Сантехніка'],['💡','Електрика'],['🛗','Ліфт'],['🚪','Домофон'],
+  ['🧹','Прибирання'],['🌳','Двір'],['🔥','Опалення'],['❓','Інше']];
+const CAT_EMOJI = Object.fromEntries(REQ_CATS.map(c=>[c[1],c[0]]));
+const ST = { new:['Нова','n'], assigned:['Призначено','b'], in_progress:['В роботі','y'],
+  done:['Виконано','g'], cancelled:['Скасовано','n'] };
+const money = n => (+n||0).toLocaleString('uk-UA',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₴';
+const dt = s => s ? new Date(s).toLocaleString('uk-UA',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : '';
+const dOnly = s => s ? new Date(s).toLocaleDateString('uk-UA',{day:'numeric',month:'long'}) : '';
+const cut = (s, n) => { s = String(s||''); if(s.length<=n) return s;
+  return s.slice(0, s.lastIndexOf(' ', n)) + '…'; };
+const esc = s => String(s==null?'':s).replace(/[<>&]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+/* ═══════════ Навігація ═══════════ */
+let stack = ['home'];
+function go(id, push=true){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('s-'+id);
+  if(!el) return;
+  el.classList.add('active');
+  const isRoot = ROOTS.indexOf(id) >= 0;
+  if(push){ if(isRoot) stack=[id]; else if(stack[stack.length-1]!==id) stack.push(id); }
+  const t = TITLES[id] || ['',''];
+  document.getElementById('ttl').firstChild.nodeValue = t[0] || (D.flat ? 'ЖК 4U' : '');
+  document.getElementById('subttl').textContent =
+    id==='home' ? flatLabel() : (id==='chat' && humanCalled ? 'Ольга, диспетчер · онлайн' : t[1]);
+  document.getElementById('topbar').classList.toggle('sub', !isRoot);
+  document.getElementById('tabbar').classList.toggle('off', TABS[id]===null && id!=='chat');
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===TABS[id]));
+  syncMainButton(id); syncBackButton(id);
+  const mn = document.getElementById('main');
+  mn.classList.toggle('chatmode', id==='chat');
+  mn.scrollTop = 0;
+  if(id==='chat') setTimeout(()=>{const m=document.getElementById('msgs'); m.scrollTop=m.scrollHeight},30);
+}
+function back(){ haptic('light'); stack.pop(); go(stack[stack.length-1]||'home', false); }
+function flatLabel(){
+  if(!D.flat) return '';
+  return `${D.flat.section_name}, кв. ${D.flat.number}` + (role==='tenant' ? ' · орендар' : '');
+}
+document.addEventListener('click', e=>{
+  if(e.target.closest('.row, .btn, .qa, .tabbar button, .chips button, .slot, .opt')) haptic('light');
+}, true);
+
+let tt;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),2600);
+}
+
+/* ═══════════ Кнопки Telegram ═══════════ */
+const MAIN_ACTION = {
+  meters:['Передати показники', ()=>submitMeters()],
+  'req-new':['Надіслати заявку', ()=>submitReq()],
+  'pass-new':['Створити перепустку', ()=>submitPass()],
+  'access-new':['Створити запрошення', ()=>submitAccess()],
+  onb1:['Знайти мою квартиру', ()=>go('onb2')],
+  rate:['Надіслати оцінку', ()=>submitRate()],
+  booking:['Забронювати', ()=>submitBooking()],
+};
+let mainHandler=null;
+function syncMainButton(id){
+  if(!tg || !tg.MainButton) return;
+  const a = MAIN_ACTION[id];
+  if(mainHandler){ try{ tg.MainButton.offClick(mainHandler); }catch(e){} mainHandler=null; }
+  if(!a){ try{ tg.MainButton.hide(); }catch(e){} return; }
+  mainHandler = ()=>{ haptic('ok'); a[1](); };
+  try{ tg.MainButton.setText(a[0]); tg.MainButton.onClick(mainHandler); tg.MainButton.show(); }catch(e){}
+}
+function syncBackButton(id){
+  if(!tg || !tg.BackButton) return;
+  try{ ROOTS.indexOf(id)>=0 ? tg.BackButton.hide() : tg.BackButton.show(); }catch(e){}
+}
+if(tg && tg.BackButton){ try{ tg.BackButton.onClick(()=>back()); }catch(e){} }
+
+/* ═══════════ Завантаження ═══════════ */
+async function boot(){
+  try{
+    D = await api('/bootstrap');
+  }catch(e0){
+  try{
+    const r = await fetch('demo/resident.json');
+    if(!r.ok) throw e0;
+    DEMO_DATA = await r.json();
+    DEMO = true;
+    D = DEMO_DATA;
+    document.getElementById('devbar').textContent = 'ДЕМО · вигадані дані, дії працюють лише у вашому браузері';
+    document.getElementById('devbar').classList.remove('hide');
+  }catch(e){
+    const diag = [
+      'Telegram SDK: ' + (window.Telegram ? 'є' : 'НЕ ЗАВАНТАЖИВСЯ'),
+      'initData: ' + (tg && tg.initData ? tg.initData.length + ' символів' : 'порожній'),
+      'platform: ' + (tg ? tg.platform : '—') + ' · версія: ' + (tg ? tg.version : '—'),
+    ].join('<br>');
+    document.getElementById('main').innerHTML =
+      `<div class="empty"><div class="e">🔌</div><div class="t">Не вдалося увійти</div>
+       <div class="s">${esc(e.message)}</div>
+       <div class="s" style="margin-top:14px;text-align:left;font-family:ui-monospace,monospace;font-size:11px;
+            background:var(--card);padding:12px;border-radius:10px">${diag}</div></div>`;
+    return;
+  }
+  }
+  if(D.aiEnabled !== undefined && !inTG) document.getElementById('devbar').classList.remove('hide');
+  if(D.needsBinding){
+    renderNews();
+    document.getElementById('tabbar').classList.add('off');
+    go('onb1'); return;
+  }
+  FLAT_ID = D.flat.flat_id;
+  role = D.role;
+  applyRole();
+  renderAll();
+  go('home', false);
+}
+
+function applyRole(){
+  const tenant = role === 'tenant';
+  const r = D.rights || {};
+  document.getElementById('tabbar').classList.toggle('tenant', !r.bills);
+  document.getElementById('rolebar').classList.toggle('hide', !tenant);
+  document.querySelectorAll('.owner-only').forEach(e=>e.classList.toggle('hide', tenant || !r.bills));
+  document.querySelectorAll('.tenant-only').forEach(e=>e.classList.toggle('hide', !tenant));
+  const fr = document.getElementById('flat-role');
+  if(fr) fr.textContent = tenant ? 'Орендар' + (D.flat.valid_until ? ' · до ' + D.flat.valid_until : '') : 'Власник';
+}
+
+function renderAll(){
+  renderHome(); renderBills(); renderMeters(); renderRequests(); renderNews();
+  renderChat(); renderPasses(); renderVote(); renderAccess(); renderFlat();
+  renderDocs(); renderBooking(); renderNotif(); renderReceipt(); renderFinance();
+  drawStars();
+}
+
+/* ═══════════ Головна ═══════════ */
+function debtOf(){
+  const b = D.bill; if(!b) return 0;
+  return +b.accrued + +b.debt_before - +b.paid;
+}
+function renderHome(){
+  const b = D.bill, debt = debtOf();
+  const bal = document.querySelector('.balance');
+  if(bal && b){
+    bal.querySelector('.lb').textContent = debt > 0 ? `До сплати за ${periodName(b.period)}` : `Оплачено за ${periodName(b.period)}`;
+    bal.querySelector('.sum').textContent = money(debt);
+    bal.querySelector('.due').textContent = b.due_date ? 'Термін оплати — до ' + dOnly(b.due_date) : '';
+  }
+  const em = D.news.find(n=>n.kind==='emergency');
+  const banner = document.querySelector('#s-home .banner.r');
+  if(banner){
+    banner.classList.toggle('hide', !em);
+    if(em){
+      banner.querySelector('.h').textContent = em.title;
+      banner.querySelector('.small').textContent = cut(em.body, 95);
+      banner.onclick = ()=>openNews(D.news.indexOf(em));
+    }
+  }
+  const need = ['cold','hot','elec'].some(k=>!D.meters.find(m=>m.kind===k));
+  const mb = document.querySelector('#s-home .banner.y');
+  if(mb) mb.classList.toggle('hide', !need);
+
+  const active = D.requests.filter(r=>['new','assigned','in_progress'].includes(r.status));
+  document.getElementById('home-reqs').innerHTML = active.length
+    ? active.slice(0,3).map(reqRow).join('') +
+      '<div class="row" onclick="go(\'req\')"><div class="body"><div class="nm" style="color:var(--accent)">Усі заявки</div></div><span class="chev">›</span></div>'
+    : emptyBlk('🔧','Активних заявок немає','Якщо щось зламалось — натисніть «Заявка» вгорі');
+  const badge = document.querySelector('.tabbar .badge');
+  if(badge){ badge.textContent = active.length; badge.classList.toggle('hide', !active.length); }
+
+  document.getElementById('home-news').innerHTML = D.news.slice(0,3).map((n,i)=>
+    `<div class="row" onclick="openNews(${i})"><span class="ic">${n.emoji}</span>
+     <div class="body"><div class="nm">${esc(n.title)}</div><div class="tiny muted">${dt(n.created_at)}</div></div>
+     <span class="chev">›</span></div>`).join('');
+}
+const MONTHS = ['січень','лютий','березень','квітень','травень','червень',
+  'липень','серпень','вересень','жовтень','листопад','грудень'];
+const periodName = p => { const [y,m] = String(p).split('-'); return `${MONTHS[+m-1]} ${y}`; };
+const emptyBlk = (e,t,s)=>`<div class="empty"><div class="e">${e}</div><div class="t">${t}</div><div class="s">${s}</div></div>`;
+
+/* ═══════════ Рахунки ═══════════ */
+function renderBills(){
+  const b = D.bill;
+  const bal = document.querySelector('#s-bills .balance');
+  if(bal && b){
+    bal.querySelector('.sum').textContent = money(debtOf());
+    bal.querySelector('.due').textContent = +b.debt_before > 0
+      ? `у т.ч. борг за минулий період ${money(b.debt_before)}` : 'Заборгованості за минулі періоди немає';
+    const btn = bal.querySelector('.btn');
+    if(btn){ btn.textContent = 'Оплатити ' + money(debtOf());
+      btn.onclick = ()=>toast('Оплата підключається окремо — поки що користуйтесь квитанцією або QR'); }
+  }
+  document.getElementById('bill-lines').innerHTML = b
+    ? D.billLines.map(l=>`<div class="row" style="cursor:default"><div class="body">
+        <div class="nm">${esc(l.name)}</div>${l.detail?`<div class="tiny muted">${esc(l.detail)}</div>`:''}</div>
+        <b>${money(l.amount)}</b></div>`).join('') +
+      `<div class="row" style="cursor:default; background:var(--accent-soft)"><div class="body"><b>Нараховано за ${periodName(b.period)}</b></div><b>${money(b.accrued)}</b></div>` +
+      (+b.paid ? `<div class="row" style="cursor:default"><div class="body"><div class="nm">Сплачено</div></div><b style="color:var(--ok)">${money(b.paid)}</b></div>` : '') +
+      (+b.debt_before ? `<div class="row" style="cursor:default"><div class="body"><div class="nm">Борг за попередній період</div></div><b style="color:var(--danger)">${money(b.debt_before)}</b></div>` : '')
+    : emptyBlk('🎉','Нарахувань ще немає','Перша квитанція з’явиться 1 числа наступного місяця');
+
+  document.getElementById('bill-history').innerHTML = D.billsHistory.length
+    ? D.billsHistory.map(h=>{
+        const d = +h.accrued + +h.debt_before - +h.paid;
+        return `<div class="row" style="cursor:default"><div class="body"><div class="nm">${periodName(h.period)}</div>
+          <div class="tiny muted">${d>0.01?'Залишок '+money(d):'Сплачено повністю'}</div></div>
+          <div style="text-align:right"><b class="small">${money(h.accrued)}</b><br>
+          <span class="chip ${d>0.01?'y':'g'}">${d>0.01?'Борг':'Сплачено'}</span></div></div>`;
+      }).join('')
+    : emptyBlk('📄','Ще немає жодного періоду','Історія почне накопичуватись після першої квитанції');
+}
+
+/* ═══════════ Показники ═══════════ */
+function renderMeters(){
+  const kinds = ['cold','hot','elec','heat'];
+  document.getElementById('meter-fields').innerHTML = kinds.map(k=>{
+    const meta = METER_META[k];
+    const cur = D.meters.find(m=>m.kind===k);
+    const prev = D.prevMeters.find(m=>m.kind===k);
+    if(k==='heat' && !prev)
+      return `<label class="f" style="opacity:.5"><span class="lb">${meta[2]} ${meta[0]}</span>
+              <input value="Не подається влітку" disabled></label>`;
+    if(cur)
+      return `<label class="f"><span class="lb">${meta[2]} ${meta[0]} · подано за цей місяць</span>
+              <input value="${cur.value}" disabled>
+              <span class="tiny" style="color:var(--ok)">Прийнято${cur.source==='photo'?' · з фото':''}</span></label>`;
+    const p = prev ? +prev.value : null;
+    return `<label class="f"><span class="lb">${meta[2]} ${meta[0]}${p!=null?` · попередній показ ${p} ${meta[1]}`:''}</span>
+      <input type="number" inputmode="decimal" id="mt-${k}" placeholder="Поточний показ, ${meta[1]}"
+             oninput="calcUse('${k}', ${p})"><span class="tiny muted" id="use-${k}"></span></label>`;
+  }).join('');
+}
+function calcUse(kind, prev){
+  const el = document.getElementById('mt-'+kind), out = document.getElementById('use-'+kind);
+  const v = parseFloat(el.value);
+  if(isNaN(v)){ out.textContent=''; return; }
+  if(prev!=null && v < prev){ out.innerHTML = '<span style="color:var(--danger)">Менше за попередній показ — перевірте</span>'; return; }
+  const d = prev!=null ? +(v-prev).toFixed(2) : null;
+  if(d==null){ out.textContent=''; return; }
+  out.innerHTML = `Витрата: <b>${d} ${METER_META[kind][1]}</b>` +
+    (d > (kind==='elec'?600:20) ? ' <span style="color:var(--warn)">— незвично багато, підтвердьте фото</span>' : '');
+}
+async function submitMeters(){
+  const values = {}, conf = {};
+  for(const k of ['cold','hot','elec','heat']){
+    const el = document.getElementById('mt-'+k);
+    if(el && !el.disabled && el.value !== '') values[k] = el.value;
+    if(el && el.dataset.conf) conf[k] = +el.dataset.conf;
+  }
+  if(!Object.keys(values).length) return toast('Введіть хоча б один показ');
+  try{
+    const r = await api('/meters', { values, confidence: conf, source: Object.keys(conf).length?'photo':'manual' });
+    haptic('ok');
+    const warn = r.saved.filter(s=>s.status==='warn');
+    toast(warn.length ? 'Передано. Витрата незвично велика — ЖЕК перевірить' : 'Показники передано');
+    D = await api('/bootstrap'); renderAll(); go('home');
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+async function aiScan(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
+  input.onchange = async () => {
+    const file = input.files[0]; if(!file) return;
+    const card = document.getElementById('ai-scan-card');
+    card.innerHTML = '<div class="scanning"><span class="spin"></span>Розпізнаю цифри з фото…</div>';
+    try{
+      const b64 = await new Promise((ok,err)=>{ const fr=new FileReader();
+        fr.onload=()=>ok(String(fr.result).split(',')[1]); fr.onerror=err; fr.readAsDataURL(file); });
+      const r = await api('/meters/scan', { image: b64, mime: file.type });
+      card.className = '';
+      if(!r.ok){
+        card.innerHTML = `<div class="ai"><span class="e">📷</span><div><div style="font-weight:600;font-size:14px">Розпізнавання недоступне</div>
+          <div class="small muted">${esc(r.message)}</div></div></div>`;
+        return;
+      }
+      let filled = 0;
+      for(const k of ['cold','hot','elec']){
+        if(r[k] == null) continue;
+        const el = document.getElementById('mt-'+k); if(!el) continue;
+        el.value = r[k];
+        el.dataset.conf = (r.confidence && r.confidence[k]) || '';
+        const prev = D.prevMeters.find(m=>m.kind===k);
+        calcUse(k, prev ? +prev.value : null);
+        const c = r.confidence && r.confidence[k];
+        if(c) document.getElementById('use-'+k).innerHTML += ` <span style="color:var(--accent)">· з фото, впевненість ${c}%</span>`;
+        filled++;
+      }
+      card.innerHTML = `<div class="ai"><span class="e">🤖</span><div>
+        <div style="font-weight:600; font-size:14px">Розпізнано лічильників: ${filled}</div>
+        <div class="small muted">Звірте цифри з табло перед відправкою — відповідає той, хто передав покази.</div></div></div>`;
+      haptic('ok');
+    }catch(e){
+      card.className='card'; card.innerHTML = `<div class="pad small" style="color:var(--danger)">${esc(e.message)}</div>`;
+    }
+  };
+  input.click();
+}
+
+/* ═══════════ Заявки ═══════════ */
+function reqRow(r){
+  const st = ST[r.status] || ST.new;
+  return `<div class="row" onclick="openReq(${r.id})"><span class="ic">${CAT_EMOJI[r.category]||'🔧'}</span>
+    <div class="body"><div class="nm">${esc(r.title)}</div>
+    <div class="tiny muted">№${r.id} · ${dt(r.created_at)}</div></div>
+    <span class="chip ${st[1]}">${st[0]}</span></div>`;
+}
+function renderRequests(){
+  const act = D.requests.filter(r=>['new','assigned','in_progress'].includes(r.status));
+  const done = D.requests.filter(r=>['done','cancelled'].includes(r.status));
+  document.getElementById('req-active').innerHTML = act.length ? act.map(reqRow).join('')
+    : emptyBlk('✅','Активних заявок немає','Усе працює. Створіть заявку, якщо це не так');
+  document.getElementById('req-done').innerHTML = done.length ? done.map(reqRow).join('')
+    : emptyBlk('📭','Історія порожня','Тут будуть виконані заявки з оцінками майстрів');
+  document.getElementById('req-cats').innerHTML = REQ_CATS.map(c=>
+    `<div class="qa" onclick="pickCat(this)" data-cat="${c[1]}"><span class="e">${c[0]}</span><span class="t">${c[1]}</span></div>`).join('');
+}
+function pickCat(el){
+  const box = el.parentElement;
+  box.querySelectorAll('.qa').forEach(q=>q.style.outline='');
+  el.style.outline='2px solid var(--accent)';
+}
+const CAT_RULES=[
+  [/ліфт|кабін/i,'🛗','Ліфт'], [/домофон|трубк|виклик|магніт|замок|двері під|не зачиня/i,'🚪','Домофон'],
+  [/світл|лампоч|лампа|розетк|електр|вимикач|щиток|іскр|проводк|не горить/i,'💡','Електрика'],
+  [/теч|тече|вод[аиуо]|змішувач|кран|унітаз|каналіз|стояк|злив|залива|протіка|затоп|труб[аиуо]|прорв|ванн|сантехн|бойлер/i,'🚿','Сантехніка'],
+  [/сміт|брудн|прибир|пил/i,'🧹','Прибирання'], [/опаленн|батаре|тепл|радіатор/i,'🔥','Опалення'],
+  [/двір|газон|лавк|дерев|майданчик|кущ/i,'🌳','Двір']];
+const URGENT=/затоп|заливає|аварі|прорв|іскр|дим|запах газу|не перекрива|б.є струм|застряг/i;
+function aiSuggest(){
+  const t = document.getElementById('req-text').value;
+  const box = document.getElementById('ai-cat');
+  const hit = t.trim().length>=12 ? CAT_RULES.find(r=>r[0].test(t)) : null;
+  if(!hit){ box.classList.add('hide'); return; }
+  const urg = URGENT.test(t);
+  box.classList.remove('hide');
+  box.innerHTML = `<div class="ai"><span class="e">🤖</span><div>
+    <div style="font-weight:600; font-size:14px">Схоже на: ${hit[1]} ${hit[2]}${urg?' · терміново':''}</div>
+    <div class="small muted">Категорію підставлено${urg?', заявку позначено терміновою':''}. Змініть вручну, якщо не так.</div></div></div>`;
+  document.querySelectorAll('#req-cats .qa').forEach(q=>{
+    q.style.outline = q.dataset.cat===hit[2] ? '2px solid var(--accent)' : ''; });
+  const u = document.getElementById('req-urg'); if(u) u.selectedIndex = urg ? 1 : 0;
+}
+async function submitReq(){
+  const text = document.getElementById('req-text').value.trim();
+  if(text.length < 5) return toast('Опишіть проблему хоча б кількома словами');
+  const cat = document.querySelector('#req-cats .qa[style*="outline"]');
+  const sels = document.querySelectorAll('#s-req-new select');
+  const urgIdx = document.getElementById('req-urg')?.selectedIndex ?? 0;
+  try{
+    const r = await api('/requests', {
+      description: text,
+      place: sels[0]?.value,
+      category: cat?.dataset.cat,
+      urgency: ['normal','urgent','emergency'][urgIdx],
+    });
+    haptic('ok'); toast(`Заявку №${r.id} створено · ${r.category}`);
+    document.getElementById('req-text').value='';
+    document.getElementById('ai-cat').classList.add('hide');
+    D = await api('/bootstrap'); renderAll(); go('req');
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+let currentReq = null;
+function openReq(id){
+  const r = D.requests.find(x=>x.id===id); if(!r) return;
+  currentReq = r;
+  const st = ST[r.status] || ST.new;
+  document.getElementById('ro-ttl').textContent = (CAT_EMOJI[r.category]||'🔧')+' '+r.title;
+  document.getElementById('ro-chip').innerHTML = `<span class="chip ${st[1]}">${st[0]}</span>`;
+  document.getElementById('ro-meta').textContent =
+    `Заявка №${r.id} · створено ${dt(r.created_at)} · ${D.flat.section_name}, кв. ${D.flat.number}`;
+  document.getElementById('ro-text').textContent = r.description || '';
+  const m = document.getElementById('ro-master');
+  if(r.master_name){
+    m.style.display=''; m.style.marginTop='12px';
+    m.innerHTML = `<div class="row" style="cursor:default"><span class="ic">👷</span><div class="body">
+      <div class="nm">${esc(r.master_name)}</div><div class="tiny muted">${esc(r.master_spec||'')}</div></div>
+      <span class="chip b">Призначено</span></div>`;
+  } else m.style.display='none';
+  const events = r.events || [];
+  document.getElementById('ro-tl').innerHTML = events.map((e,i)=>
+    `<li class="${i===events.length-1 && !['done','cancelled'].includes(r.status) ? 'now':'done'}">
+      <div style="font-weight:500">${esc(e.title)}</div>
+      <div class="tiny muted">${dt(e.created_at)}${e.note?' · '+esc(e.note):''}</div></li>`).join('') +
+    (['done','cancelled'].includes(r.status) ? '' : '<li><div style="color:var(--hint)">Виконано</div></li>');
+  document.getElementById('ro-actions').innerHTML = ['done','cancelled'].includes(r.status)
+    ? (r.rating ? `<div class="row" style="cursor:default"><span class="ic">⭐</span><div class="body">
+          <div class="nm">Ваша оцінка: ${'★'.repeat(r.rating)}</div></div></div>`
+        : `<div class="row" onclick="go('rate')"><span class="ic">⭐</span><div class="body"><div class="nm">Оцінити виконання</div>
+           <div class="tiny muted">Допомагає ЖЕКу бачити якість роботи</div></div><span class="chev">›</span></div>`)
+    : `<div class="row" onclick="go('chat')"><span class="ic">💬</span><div class="body"><div class="nm">Написати диспетчеру</div></div><span class="chev">›</span></div>
+       <div class="row" onclick="cancelReq(${r.id})"><span class="ic">✖️</span><div class="body"><div class="nm" style="color:var(--danger)">Скасувати заявку</div></div></div>`;
+  go('req-one');
+}
+async function cancelReq(id){
+  try{ await api(`/requests/${id}/cancel`, {}); haptic('ok'); toast('Заявку скасовано');
+    D = await api('/bootstrap'); renderAll(); go('req'); }
+  catch(e){ haptic('err'); toast(e.message); }
+}
+let rating = 0;
+const RATE_LB=['Торкніться зірки','Погано — розберемось','Так собі','Нормально','Добре','Чудово, дякуємо!'];
+function drawStars(){
+  const box = document.getElementById('stars'); if(!box) return;
+  box.innerHTML = [1,2,3,4,5].map(i=>`<span onclick="setRate(${i})">${i<=rating?'★':'☆'}</span>`).join('');
+  document.getElementById('rate-lb').textContent = RATE_LB[rating];
+}
+function setRate(n){ rating=n; drawStars(); haptic('light'); }
+async function submitRate(){
+  if(!rating) return toast('Оберіть оцінку');
+  const done = D.requests.find(r=>r.status==='done' && !r.rating);
+  if(!done) return toast('Немає заявки, яку можна оцінити');
+  try{
+    await api(`/requests/${done.id}/rate`, { rating, comment: document.querySelector('#s-rate textarea').value });
+    haptic('ok'); toast('Дякуємо! Оцінку передано керуючому');
+    rating=0; drawStars(); D = await api('/bootstrap'); renderAll(); go('req');
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+
+/* ═══════════ Новини ═══════════ */
+function renderNews(){
+  const list = (D.news||[]);
+  document.getElementById('news-list').innerHTML = list.length ? list.map((n,i)=>
+    `<div class="card pad" onclick="openNews(${i})" style="cursor:pointer; margin-bottom:12px${n.kind==='emergency'?'; border-left:3px solid var(--danger)':''}">
+      <div class="spread"><div style="font-weight:600">${n.emoji} ${esc(n.title)}</div>
+      ${n.kind==='emergency'?'<span class="chip r">Аварійне</span>':''}</div>
+      <div class="tiny muted" style="margin:3px 0 8px">${dt(n.created_at)} · ${esc(n.author||'Керуюча компанія 4U')}</div>
+      <div class="small">${esc(n.body)}</div></div>`).join('')
+    : emptyBlk('📰','Новин поки немає','Тут з’являться оголошення від керуючої компанії');
+}
+function openNews(i){
+  const n = D.news[i]; if(!n) return;
+  document.getElementById('news-img').textContent = n.emoji;
+  document.getElementById('news-one-chip').innerHTML = n.kind==='emergency'
+    ? '<span class="chip r">Аварійне</span>' : '<span class="chip n">Оголошення</span>';
+  document.getElementById('news-one-ttl').textContent = n.title;
+  document.getElementById('news-one-dt').textContent = dt(n.created_at) + ' · ' + (n.author||'Керуюча компанія 4U');
+  document.getElementById('news-one-txt').textContent = n.body;
+  go('news-one');
+}
+
+/* ═══════════ Чат ═══════════ */
+const CHIPS = ['Коли вимикають воду?','Реквізити для оплати','Як подати покази','Коли приїде майстер?','👤 Покликати людину'];
+function renderChat(){
+  const box = document.getElementById('msgs');
+  box.innerHTML = (D.messages||[]).map(m=>{
+    const cls = m.author==='user' ? 'me' : m.author==='bot' ? 'bot' : 'them';
+    const who = m.author==='staff' && m.staff_name ? `<b>${esc(m.staff_name)}:</b> ` : (m.author==='bot' ? '🤖 ' : '');
+    return `<div class="msg ${cls}">${who}${esc(m.text)}
+      <span class="tm">${new Date(m.created_at).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
+  }).join('');
+  humanCalled = D.chatStatus === 'waiting' || D.chatStatus === 'staff';
+  document.getElementById('chat-chips').innerHTML =
+    CHIPS.map(c=>`<button onclick="ask(this.textContent)">${c}</button>`).join('');
+  box.scrollTop = box.scrollHeight;
+}
+function ask(t){ document.getElementById('chat-in').value = t.replace('👤 ',''); sendMsg(); }
+function push(cls, html){
+  const m = document.getElementById('msgs');
+  m.insertAdjacentHTML('beforeend', `<div class="msg ${cls}">${html}<span class="tm">зараз</span></div>`);
+  m.scrollTop = m.scrollHeight;
+}
+async function sendMsg(){
+  const i = document.getElementById('chat-in');
+  const text = i.value.trim(); if(!text) return;
+  push('me', esc(text)); i.value='';
+  try{
+    const r = await api('/chat', { text });
+    if(r.reply) push(r.escalated && !r.reply ? 'them' : 'bot', '🤖 '+esc(r.reply));
+    if(r.escalated){
+      humanCalled = true;
+      document.getElementById('subttl').textContent = 'диспетчер підключається…';
+      setTimeout(()=>push('them','<b>Ольга, диспетчер:</b> Добрий день! Читаю ваше питання.'), 1500);
+    }
+  }catch(e){ push('them','⚠️ '+esc(e.message)); }
+}
+
+/* ═══════════ Перепустки ═══════════ */
+function renderPasses(){
+  const act = (D.passes||[]).filter(p=>p.status==='active' && new Date(p.valid_until) > new Date());
+  const old = (D.passes||[]).filter(p=>!act.includes(p));
+  const TYPE = { guest:['👤','Гість'], delivery:['📦','Доставка'], taxi:['🚕','Таксі'], worker:['🔨','Майстер'] };
+  document.getElementById('pass-active').innerHTML = act.length ? act.map(p=>
+    `<div class="row" onclick="showPass(${p.id})"><span class="ic">${TYPE[p.type][0]}</span><div class="body">
+      <div class="nm">${esc(p.person_name||TYPE[p.type][1])}</div>
+      <div class="tiny muted">${p.car?esc(p.car)+' · ':''}код ${p.code} · до ${dt(p.valid_until)}</div></div>
+      <span class="chip g">Діє</span></div>`).join('')
+    : emptyBlk('🎫','Діючих перепусток немає','Замовте, коли чекаєте гостя або кур’єра');
+  const hist = document.querySelector('#s-pass .card:last-of-type');
+  if(hist) hist.innerHTML = old.length ? old.map(p=>
+    `<div class="row" style="cursor:default"><span class="ic">${TYPE[p.type][0]}</span><div class="body">
+      <div class="nm">${esc(p.person_name||'')}</div><div class="tiny muted">${dt(p.valid_until)} · ${p.status==='used'?'використано':'термін вичерпано'}</div></div></div>`).join('')
+    : '<div class="pad tiny muted" style="text-align:center">Історія порожня</div>';
+  document.getElementById('pass-types').innerHTML = Object.entries(TYPE).map(([k,v],i)=>
+    `<div class="qa" onclick="pickCat(this)" data-type="${k}" style="${i===0?'outline:2px solid var(--accent)':''}">
+      <span class="e">${v[0]}</span><span class="t">${v[1]}</span></div>`).join('');
+}
+async function submitPass(){
+  const inputs = document.querySelectorAll('#s-pass-new input');
+  const sel = document.querySelector('#s-pass-new select');
+  const type = document.querySelector('#pass-types .qa[style*="outline"]')?.dataset.type || 'guest';
+  const hours = [12, 24, 72, 168][sel.selectedIndex] || 12;
+  try{
+    const r = await api('/passes', { type, name: inputs[0].value, car: inputs[1].value,
+                                     comment: inputs[3]?.value, hours });
+    haptic('ok');
+    D = await api('/bootstrap'); renderAll(); showPass(r.id);
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+function showPass(id){
+  const p = D.passes.find(x=>x.id===id); if(!p) return go('pass');
+  const s = document.getElementById('s-pass-qr');
+  s.querySelector('div[style*="font-weight:600"]').textContent = 'Перепустка для гостя';
+  s.querySelector('.small.muted').textContent = [p.person_name, p.car].filter(Boolean).join(' · ');
+  s.querySelector('div[style*="letter-spacing"]').textContent = p.code;
+  s.querySelector('.chip').textContent = 'Діє до ' + dt(p.valid_until);
+  makeQR(document.getElementById('qr'), p.code.split('').reduce((a,c)=>a*7+ +c, 13));
+  go('pass-qr');
+}
+
+/* ═══════════ Голосування ═══════════ */
+function renderVote(){
+  const v = D.vote;
+  const sec = document.getElementById('s-vote');
+  if(!v){ sec.querySelector('.card').innerHTML = emptyBlk('🗳️','Активних опитувань немає','Тут з’являться питання від ОСББ'); return; }
+  sec.querySelector('.pad div[style*="font-weight:600"]').textContent = v.title;
+  sec.querySelector('.pad .small.muted').textContent =
+    `${v.description||''} Голосування до ${dOnly(v.ends_at)}.`;
+  document.getElementById('vote-opts').innerHTML = v.options.map(o=>
+    `<div class="opt${v.myOption===o.id?' sel':''}" onclick="pickVote(this, ${o.id})"><span class="rd"></span><div>${esc(o.text)}</div></div>`).join('');
+  const btn = document.getElementById('vote-btn');
+  btn.disabled = !v.myOption;
+  btn.textContent = v.myOption ? 'Змінити голос' : 'Проголосувати';
+  sec.querySelector('.pad .tiny.muted').textContent =
+    `Проголосувало ${v.voted} з ${v.flats} квартир · один голос на квартиру`;
+}
+let pickedOption = null;
+function pickVote(el, id){
+  document.querySelectorAll('#vote-opts .opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel'); pickedOption = id;
+  document.getElementById('vote-btn').disabled = false;
+}
+async function castVote(){
+  const id = pickedOption || D.vote?.myOption;
+  if(!id) return toast('Оберіть варіант');
+  try{
+    await api(`/votes/${D.vote.id}`, { option_id: id });
+    haptic('ok'); toast('Голос зараховано — змінити можна до кінця голосування');
+    D = await api('/bootstrap'); renderVote();
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+
+/* ═══════════ Доступ ═══════════ */
+const RIGHTS_DEF = [
+  ['requests','Заявки на поломку','Створювати свої та бачити їх статус',true],
+  ['passes','Перепустки для гостей','Замовляти QR і коди для охорони',true],
+  ['meters','Покази лічильників','Передавати щомісяця',true],
+  ['news','Новини та сповіщення','Аварійні — завжди, незалежно від цього',true],
+  ['chat','Чат з ЖЕКом','Писати диспетчеру від імені квартири',true],
+  ['bills','Рахунки та борги','Бачити суми й квитанції',false],
+  ['votes','Голосування','Голосувати від імені квартири',false]];
+function renderAccess(){
+  const ROLE = { owner:['👑','Власник','g'], tenant:['🔑','Орендар','b'], family:['👨‍👩‍👦','Сім’я','n'] };
+  document.getElementById('access-list').innerHTML = (D.access||[]).map(a=>{
+    const r = ROLE[a.role];
+    const name = a.first_name ? [a.first_name,a.last_name].filter(Boolean).join(' ') : a.person_name;
+    const me = a.role==='owner' ? ' (ви)' : '';
+    return `<div class="row" ${a.role!=='owner'?`onclick="revokeAccess(${a.id})"`:'style="cursor:default"'}>
+      <span class="ic">${r[0]}</span><div class="body"><div class="nm">${esc(name)}${me}</div>
+      <div class="tiny muted">${r[1]}${a.valid_until?' · до '+a.valid_until:' · безстроково'}</div></div>
+      <span class="chip ${r[2]}">${r[1]}</span></div>`;
+  }).join('') || emptyBlk('🔑','Доступ лише у вас','Можна додати орендаря або члена сім’ї');
+  document.getElementById('access-types').innerHTML = [['🔑','Орендар','tenant'],['👨‍👩‍👦','Член сім’ї','family']]
+    .map((p,i)=>`<div class="qa" onclick="pickCat(this)" data-role="${p[2]}" style="${i===0?'outline:2px solid var(--accent)':''}">
+      <span class="e">${p[0]}</span><span class="t">${p[1]}</span></div>`).join('');
+  document.getElementById('access-rights').innerHTML = RIGHTS_DEF.map(r=>
+    `<div class="row" onclick="tgl(this)" data-key="${r[0]}"><div class="body"><div class="nm">${r[1]}</div>
+      <div class="tiny muted">${r[2]}</div></div><span class="sw${r[3]?' on':''}"></span></div>`).join('');
+}
+function tgl(el){ el.querySelector('.sw').classList.toggle('on'); }
+async function submitAccess(){
+  const inputs = document.querySelectorAll('#s-access-new input');
+  const role = document.querySelector('#access-types .qa[style*="outline"]')?.dataset.role || 'tenant';
+  const rights = {};
+  document.querySelectorAll('#access-rights .row').forEach(r=>{
+    rights[r.dataset.key] = r.querySelector('.sw').classList.contains('on'); });
+  try{
+    const r = await api('/access', { name: inputs[0].value, phone: inputs[1].value,
+      role, valid_until: (inputs[2].value||'').split('.').reverse().join('-') || null, rights });
+    haptic('ok');
+    const s = document.getElementById('s-access-code');
+    s.querySelector('.small.muted').textContent = `${inputs[0].value||'Орендар'} · доступ до ${inputs[2].value||'без обмеження'}`;
+    s.querySelector('div[style*="letter-spacing"]').textContent = r.invite_code;
+    D = await api('/bootstrap'); renderAccess(); go('access-code');
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+async function revokeAccess(id){
+  try{ await api(`/access/${id}/revoke`, {}); haptic('ok'); toast('Доступ відкликано');
+    D = await api('/bootstrap'); renderAccess(); }
+  catch(e){ haptic('err'); toast(e.message); }
+}
+
+/* ═══════════ Квартира, документи, бронювання ═══════════ */
+function renderFlat(){
+  const f = D.flat; if(!f) return;
+  const rows = document.querySelectorAll('#s-flat .card:first-of-type .row .nm');
+  if(rows[0]) rows[0].textContent = `вул. Ак. Булаховського, 2, ${f.section_name.toLowerCase()}, кв. ${f.number}`;
+  if(rows[1]) rows[1].textContent = `${f.area} м²`;
+  if(rows[2]) rows[2].textContent = f.account;
+  if(rows[3]) rows[3].textContent = f.residents;
+  const more = document.querySelector('#s-more .row .tiny.muted');
+  if(more) more.textContent = `${f.section_name}, кв. ${f.number} · ${f.area} м²`;
+}
+function renderDocs(){
+  const cat = c => (D.documents||[]).filter(d=>d.category===c).map(d=>
+    `<div class="doc" onclick="toast('Документ відкриється, коли ЖЕК завантажить файл')"><span class="ic">PDF</span>
+      <div class="body"><div class="nm">${esc(d.title)}</div><div class="tiny muted">${esc(d.detail||'')}</div></div>
+      <span class="chev">›</span></div>`).join('');
+  document.getElementById('docs1').innerHTML = cat('contract') || '<div class="pad tiny muted">Порожньо</div>';
+  document.getElementById('docs2').innerHTML = (cat('protocol')+cat('report')) || '<div class="pad tiny muted">Порожньо</div>';
+}
+let pickedSlot = null;
+async function renderBooking(){
+  const date = new Date(Date.now()+864e5).toISOString().slice(0,10);
+  document.getElementById('book-types').innerHTML = [['🛗','Вантажний ліфт','elevator'],['🅿️','Гостьове місце','parking']]
+    .map((p,i)=>`<div class="qa" onclick="pickCat(this); loadSlots()" data-res="${p[2]}" style="${i===0?'outline:2px solid var(--accent)':''}">
+      <span class="e">${p[0]}</span><span class="t">${p[1]}</span></div>`).join('');
+  document.querySelector('#s-booking .sec-ttl:nth-of-type(2)').textContent =
+    new Date(date).toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long'});
+  await loadSlots();
+  const my = (D.bookings||[]);
+  const card = document.querySelector('#s-booking .card:last-of-type');
+  if(card) card.innerHTML = my.length ? my.map(b=>
+    `<div class="row" style="cursor:default"><span class="ic">${b.resource==='elevator'?'🛗':'🅿️'}</span><div class="body">
+      <div class="nm">${b.resource==='elevator'?'Вантажний ліфт':'Гостьове місце'}</div>
+      <div class="tiny muted">${dOnly(b.slot_date)}, ${b.slot_from.slice(0,5)}–${b.slot_to.slice(0,5)}${b.note?' · '+esc(b.note):''}</div></div>
+      <span class="chip g">Активна</span></div>`).join('')
+    : '<div class="pad tiny muted" style="text-align:center">Броней немає</div>';
+}
+async function loadSlots(){
+  const res = document.querySelector('#book-types .qa[style*="outline"]')?.dataset.res || 'elevator';
+  const date = new Date(Date.now()+864e5).toISOString().slice(0,10);
+  let busy = [];
+  try{ busy = await api(`/bookings/${res}/${date}`); }catch(e){}
+  const SLOTS = [['08:00','10:00'],['10:00','12:00'],['12:00','14:00'],['14:00','16:00'],['16:00','18:00'],['18:00','20:00']];
+  document.getElementById('book-slots').innerHTML = '<div class="slots">' + SLOTS.map(s=>{
+    const taken = busy.some(b=>b.slot_from.slice(0,5)===s[0]);
+    return `<span class="slot${taken?' busy':''}" ${taken?'':`onclick="pickSlot(this,'${s[0]}','${s[1]}')"`}>${s[0]}–${s[1]}</span>`;
+  }).join('') + '</div><div class="tiny muted" style="margin-top:10px">Закреслені слоти вже зайняті сусідами. Бронь до 2 годин, охорона отримує список автоматично.</div>';
+}
+function pickSlot(el, from, to){
+  document.querySelectorAll('#book-slots .slot').forEach(x=>x.classList.remove('pick'));
+  el.classList.add('pick'); pickedSlot = { from: from+':00', to: to+':00' };
+}
+async function submitBooking(){
+  if(!pickedSlot) return toast('Оберіть слот');
+  const res = document.querySelector('#book-types .qa[style*="outline"]')?.dataset.res || 'elevator';
+  const date = new Date(Date.now()+864e5).toISOString().slice(0,10);
+  try{
+    await api('/bookings', { resource: res, date, from: pickedSlot.from, to: pickedSlot.to });
+    haptic('ok'); toast('Слот заброньовано, охорона отримала повідомлення');
+    D = await api('/bootstrap'); await renderBooking();
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+function renderNotif(){
+  const N = [['Аварійні відключення','Вода, світло, ліфт, газ',true,true],
+    ['Статус моїх заявок','Прийнято, майстер у дорозі, виконано',true,false],
+    ['Нарахування і борг','Коли з’явилась нова квитанція',true,false],
+    ['Нагадування про покази','20 числа щомісяця',true,false],
+    ['Новини та оголошення','Звичайні, не аварійні',true,false],
+    ['Голосування','Нове опитування і його результат',false,false]];
+  document.getElementById('notif-list').innerHTML = N.map(n=>
+    `<div class="row"${n[3]?' style="cursor:default;opacity:.6"':' onclick="tgl(this)"'}>
+      <div class="body"><div class="nm">${n[0]}</div><div class="tiny muted">${n[1]}${n[3]?' · вимкнути не можна':''}</div></div>
+      <span class="sw${n[2]?' on':''}"></span></div>`).join('');
+}
+function renderReceipt(){
+  const b = D.bill, f = D.flat; if(!b || !f) return;
+  document.getElementById('receipt-body').innerHTML =
+    `<div style="text-align:center"><b>КВИТАНЦІЯ ЗА ${periodName(b.period).toUpperCase()}</b><br>
+      ТОВ «Керуюча компанія 4U»<br>ЄДРПОУ 44172830 · IBAN UA21 3223 1300 0002 6007 2335 6600</div><hr>
+     <div class="rrow"><span>Платник</span><b>${esc(f.owner_name||'')}</b></div>
+     <div class="rrow"><span>Адреса</span><b>Булаховського 2, ${f.section_name.toLowerCase()}, кв. ${f.number}</b></div>
+     <div class="rrow"><span>Особовий рахунок</span><b>${f.account}</b></div>
+     <div class="rrow"><span>Площа</span><b>${f.area} м²</b></div><hr>` +
+    D.billLines.map(l=>`<div class="rrow"><span>${esc(l.name)}</span><b>${money(l.amount)}</b></div>`).join('') +
+    `<hr><div class="rrow"><span>Нараховано за період</span><b>${money(b.accrued)}</b></div>
+     <div class="rrow"><span>Сплачено</span><b>${money(b.paid)}</b></div>
+     <div class="rrow"><span>Борг за попередній період</span><b>${money(b.debt_before)}</b></div>
+     <div class="rrow" style="font-size:14px; margin-top:6px"><span><b>ДО СПЛАТИ</b></span><b>${money(debtOf())}</b></div><hr>
+     <div style="text-align:center; color:#666">Термін оплати — до ${dOnly(b.due_date)}.
+       Призначення платежу: «Оплата житлово-комунальних послуг, о/р ${f.account}».</div>`;
+  makeQR(document.getElementById('qr2'), 90210);
+}
+function renderFinance(){
+  const FIN = [['Комунальні послуги будинку',34],['Зарплата персоналу',26],['Ремонти й аварійні роботи',21],
+    ['Прибирання й благоустрій',11],['Адміністративні витрати',8]];
+  document.getElementById('fin-bars').innerHTML = FIN.map(f=>
+    `<div style="margin-bottom:10px"><div class="spread small"><span>${f[0]}</span><b>${f[1]}%</b></div>
+      <div class="bar"><i style="width:${f[1]}%"></i></div></div>`).join('');
+}
+
+/* ═══════════ Онбординг ═══════════ */
+let onbTimer;
+function onbCheck(){
+  clearTimeout(onbTimer);
+  onbTimer = setTimeout(async ()=>{
+    const v = document.getElementById('onb-code').value.trim().toUpperCase();
+    const h = document.getElementById('onb-hint');
+    if(v.length < 4){ h.classList.add('hide'); return; }
+    h.classList.remove('hide');
+    try{
+      const r = await api('/bind?check=1', { code: v });
+      h.innerHTML = `<div class="ai"><span class="e">✅</span><div>
+        <div style="font-weight:600; font-size:14px">${r.preview.section}, квартира ${r.preview.number}</div>
+        <div class="small muted">${esc(r.preview.owner||'')} · ${r.preview.area} м². Підтвердьте, що це ваша квартира.</div>
+        <button class="btn sm" style="margin-top:10px" onclick="bindFlat('${v}')">Так, це моя квартира</button></div></div>`;
+    }catch(e){
+      h.innerHTML = `<div class="ai" style="background:var(--danger-soft)"><span class="e">❌</span>
+        <div class="small">${esc(e.message)} Скористайтесь способом 2 нижче — диспетчер підтвердить вручну.</div></div>`;
+    }
+  }, 350);
+}
+async function bindFlat(code){
+  try{
+    await api('/bind', { code });
+    haptic('ok'); toast('Квартиру прив’язано');
+    document.getElementById('tabbar').classList.remove('off');
+    await boot();
+  }catch(e){ haptic('err'); toast(e.message); }
+}
+
+/* ═══════════ QR ═══════════ */
+function makeQR(el, seed){
+  if(!el) return;
+  let s = seed || 12345, h='';
+  const rnd = ()=>{ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; };
+  const finder=(r,c)=> (r<7&&c<7)||(r<7&&c>17)||(r>17&&c<7);
+  for(let r=0;r<25;r++) for(let c=0;c<25;c++){
+    let on;
+    if(finder(r,c)){
+      const dr=Math.max(Math.abs((r<7?r:r-18)-3),Math.abs((c<7?c:c-18)-3));
+      on = dr!==1 && dr<=3;
+    } else on = rnd()>0.52;
+    h += '<i class="'+(on?'on':'')+'"></i>';
+  }
+  el.innerHTML = h;
+}
+
+/* ═══════════ Демо-режими (лишились із прототипу) ═══════════ */
+let isEmpty=false;
+function setEmpty(){ toast('У робочій версії порожні екрани показуються самі — коли даних справді немає'); }
+function setRole(r){
+  role = r;
+  applyRole();
+  document.getElementById('subttl').textContent = flatLabel();
+  toast(r==='tenant' ? 'Вигляд орендаря: рахунки й голосування приховано' : 'Знову дивитесь як власник');
+  go('home');
+}
+
+boot();
+</script>
+</body>
+</html>
