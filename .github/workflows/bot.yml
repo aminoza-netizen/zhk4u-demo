@@ -1,0 +1,26 @@
+name: Бот ЖК 4U
+
+# Бот живе тут, а не на чиємусь комп'ютері.
+# GitHub запускає його за розкладом і відповідає на повідомлення.
+on:
+  schedule:
+    - cron: '*/5 * * * *'      # кожні 5 хвилин
+  workflow_dispatch:            # і вручну, кнопкою
+
+concurrency:
+  group: telegram-bot          # два запуски одночасно конфліктували б за getUpdates
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Забрати й опрацювати повідомлення
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: node bot/poll.js
