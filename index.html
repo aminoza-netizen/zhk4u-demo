@@ -1075,10 +1075,13 @@ function applyRole(){
 }
 
 function renderAll(){
-  renderHome(); renderBills(); renderMeters(); renderRequests(); renderNews();
-  renderChat(); renderPasses(); renderVote(); renderAccess(); renderFlat();
-  renderDocs(); renderBooking(); renderNotif(); renderReceipt(); renderFinance();
-  drawStars();
+  // кожен блок незалежний: збій в одному не має гасити решту екранів
+  for(const fn of [renderHome, renderBills, renderMeters, renderRequests, renderNews,
+                   renderChat, renderPasses, renderVote, renderAccess, renderFlat,
+                   renderDocs, renderBooking, renderNotif, renderReceipt, renderFinance, drawStars]){
+    try{ const r = fn(); if(r && r.catch) r.catch(e=>console.warn('[render]', fn.name, e.message)); }
+    catch(e){ console.warn('[render]', fn.name, e.message); }
+  }
 }
 
 /* ═══════════ Головна ═══════════ */
@@ -1571,7 +1574,8 @@ async function renderBooking(){
   document.getElementById('book-types').innerHTML = [['🛗','Вантажний ліфт','elevator'],['🅿️','Гостьове місце','parking']]
     .map((p,i)=>`<div class="qa" onclick="pickCat(this); loadSlots()" data-res="${p[2]}" style="${i===0?'outline:2px solid var(--accent)':''}">
       <span class="e">${p[0]}</span><span class="t">${p[1]}</span></div>`).join('');
-  document.querySelector('#s-booking .sec-ttl:nth-of-type(2)').textContent =
+  const dayTtl = document.querySelectorAll('#s-booking .sec-ttl')[1];
+  if(dayTtl) dayTtl.textContent =
     new Date(date).toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long'});
   await loadSlots();
   const my = (D.bookings||[]);
